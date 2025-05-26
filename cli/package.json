@@ -1,0 +1,19 @@
+{
+  "name": "q",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@octokit/oauth-methods": "^6.0.0",
+    "@types/node": "^22.15.21",
+    "commander": "^14.0.0",
+    "open": "^10.1.2",
+    "zod": "^3.25.23"
+  }
+}

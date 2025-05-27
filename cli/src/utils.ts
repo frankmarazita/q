@@ -53,10 +53,11 @@ export async function updateConfig(updates: Partial<Config>): Promise<Config> {
 
 export async function processCompletions(
   completions: import("stream/web").ReadableStreamDefaultReader<any>
-): Promise<void> {
+): Promise<string> {
   const decoder = new TextDecoder("utf-8");
 
   let done = false;
+  let message = "";
 
   const chunks: string[] = [];
 
@@ -75,6 +76,7 @@ export async function processCompletions(
 
         if (json.choices[0].delta.content) {
           process.stdout.write(json.choices[0].delta.content);
+          message += json.choices[0].delta.content;
         }
       } catch (error) {
         console.error("Error parsing JSON:", error);
@@ -96,4 +98,6 @@ export async function processCompletions(
   }
 
   process.stdout.write("\n");
+
+  return message;
 }

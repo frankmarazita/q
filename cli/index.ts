@@ -3,6 +3,7 @@ import { API } from "./src/api.ts";
 import { authenticate } from "./src/auth.ts";
 import { loadConfig, processCompletions, updateConfig } from "./src/utils.ts";
 import { setTimeout } from "node:timers";
+import { db } from "./src/db";
 
 const cli = new Command();
 
@@ -131,18 +132,22 @@ cli
   .action(async (input, option) => {
     await api.refreshCopilotToken();
 
+    const messages: { role: string; content: string }[] = [
+      {
+        role: "system",
+        content:
+          "You are a helpful AI assistant. You give short, accurate and concise answers.",
+      },
+      {
+        role: "user",
+        content: input,
+      },
+    ];
+
+    const chatId = await db.insertChat({ messages: messages });
+
     const completions = await api.completions("user", {
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a helpful AI assistant. You give short, accurate and concise answers.",
-        },
-        {
-          role: "user",
-          content: input,
-        },
-      ],
+      messages: messages,
       model: c.model ? c.model.id : undefined,
       temperature: 0.1,
       top_p: 1,
@@ -151,7 +156,14 @@ cli
       stream: true,
     });
 
-    await processCompletions(completions);
+    const reply = await processCompletions(completions);
+
+    messages.push({
+      role: "assistant",
+      content: reply,
+    });
+
+    await db.updateChat(chatId, { messages });
   });
 
 cli

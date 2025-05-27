@@ -58,8 +58,6 @@ export class API {
         expiresAt: resJson.expires_at * 1000, // Convert to milliseconds
       },
     });
-
-    console.log("Copilot token refreshed.");
   }
 
   public async models() {

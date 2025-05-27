@@ -1,9 +1,10 @@
 import { Command } from "commander";
-import { API } from "./src/api.ts";
-import { authenticate } from "./src/auth.ts";
-import { loadConfig, processCompletions, updateConfig } from "./src/utils.ts";
+import { API } from "./src/api";
+import { authenticate } from "./src/auth";
+import { loadConfig, processCompletions, updateConfig } from "./src/utils";
 import { setTimeout } from "node:timers";
 import { db } from "./src/db";
+import { chats } from "./src/chats";
 
 const cli = new Command();
 
@@ -169,8 +170,13 @@ cli
 cli
   .command("chats")
   .description("list the chats")
-  .action(() => {
-    console.log("This feature is not implemented yet.");
+  .option("-D, --delete <id>", "delete a chat by ID")
+  .action(async (options) => {
+    if (options.delete) {
+      await chats.delete(db, options.delete);
+    } else {
+      await chats.list(db);
+    }
   });
 
 cli.parse(process.argv);

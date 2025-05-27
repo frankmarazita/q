@@ -75,7 +75,7 @@ export class DatabaseManager {
   getAllChats(): Promise<Chat[]> {
     return new Promise((resolve, reject) => {
       this.db.all(
-        "SELECT * FROM chats ORDER BY created_at DESC",
+        "SELECT * FROM chats ORDER BY created_at ASC",
         (err, rows) => {
           if (err) reject(err);
           else resolve(rows as Chat[]);

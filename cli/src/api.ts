@@ -29,7 +29,7 @@ export class API {
   public async refreshCopilotToken() {
     const c = await loadConfig();
 
-    if (c.copilotToken && c.copilotToken.expiresAt * 1000 > Date.now()) {
+    if (c.copilotToken && c.copilotToken.expiresAt > Date.now()) {
       this.copilotToken = c.copilotToken.token;
       return;
     }
@@ -58,6 +58,8 @@ export class API {
         expiresAt: resJson.expires_at * 1000, // Convert to milliseconds
       },
     });
+
+    console.log("Copilot token refreshed.");
   }
 
   public async models() {

@@ -2,10 +2,30 @@ import { Command } from "commander";
 import { API } from "./src/api.ts";
 import { authenticate } from "./src/auth.ts";
 import { loadConfig, processCompletions, updateConfig } from "./src/utils.ts";
+import { setTimeout } from "node:timers";
 
 const cli = new Command();
 
-cli.name("q").version("0.0.1");
+cli
+  .name("q")
+  .version("0.0.1")
+  .action(async () => {
+    let stdin = "";
+
+    process.stdin.on("data", (chunk) => {
+      stdin += chunk;
+    });
+
+    process.stdin.on("end", () => {
+      cli.parse(["", "", "chat", stdin.trim()]);
+    });
+
+    // This is a bit of a hack to ensure that the CLI
+    // doesn't hang when no input is provided.
+    await setTimeout(() => {
+      if (stdin.trim() === "") cli.help();
+    }, 1);
+  });
 
 await authenticate();
 
@@ -68,7 +88,7 @@ cli
   });
 
 cli
-  .command("default-model")
+  .command("set-model")
   .description("set the default model")
   .argument("<model>", "the model to set as default")
   .action(async (model) => {
@@ -92,6 +112,15 @@ cli
 
     await updateConfig({ model: selectedModel });
     console.log(`Default model set to: ${selectedModel.name}`);
+  });
+
+cli
+  .command("model")
+  .description("view the current default model")
+  .action(async () => {
+    console.log(
+      c.model ? `Current model: ${c.model.name}` : "No default model set."
+    );
   });
 
 cli
@@ -125,8 +154,11 @@ cli
     await processCompletions(completions);
   });
 
-cli.parse(process.argv);
+cli
+  .command("chats")
+  .description("list the chats")
+  .action(() => {
+    console.log("This feature is not implemented yet.");
+  });
 
-if (process.argv.length === 2) {
-  cli.help();
-}
+cli.parse(process.argv);

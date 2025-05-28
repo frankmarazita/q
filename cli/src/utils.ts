@@ -61,29 +61,7 @@ export async function processCompletions(
 
   const chunks: string[] = [];
 
-  function processChunk(chunk: string): void {
-    const lines = chunk.split("\n");
-    for (const line of lines) {
-      if (!line.startsWith("data: ")) continue;
-
-      const jsonString = line.trim().slice(6);
-      // console.log("\n\n" + jsonString + "\n");
-
-      if (jsonString === "[DONE]") break;
-
-      try {
-        const json = JSON.parse(jsonString);
-
-        if (json.choices[0].delta.content) {
-          process.stdout.write(json.choices[0].delta.content);
-          message += json.choices[0].delta.content;
-        }
-      } catch (error) {
-        console.error("Error parsing JSON:", error);
-        console.error(jsonString);
-      }
-    }
-  }
+  let partialJsonString = "";
 
   while (!done) {
     const { done: doneReading, value } = await completions.read();
@@ -94,6 +72,38 @@ export async function processCompletions(
       chunks.push(chunk.trim());
 
       processChunk(chunk);
+    }
+  }
+
+  function processChunk(chunk: string): void {
+    const lines = chunk.trim().split("\n\ndata: ");
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i]?.trim();
+      if (!line) continue; // Skip empty lines
+      // console.log("%" + line + "%");
+
+      if (line.startsWith("data: ")) {
+        // Remove "data: " prefix if present
+        line = line.slice(6);
+      }
+
+      const jsonString = partialJsonString + line;
+
+      if (jsonString === "[DONE]") break;
+
+      try {
+        const json = JSON.parse(jsonString);
+
+        partialJsonString = "";
+
+        if (json.choices.length && json.choices[0].delta.content) {
+          process.stdout.write(json.choices[0].delta.content);
+          message += json.choices[0].delta.content;
+        }
+      } catch (error) {
+        partialJsonString = jsonString;
+      }
     }
   }
 

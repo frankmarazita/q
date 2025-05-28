@@ -12,8 +12,10 @@
   "dependencies": {
     "@octokit/oauth-methods": "^6.0.0",
     "@types/node": "^22.15.21",
+    "@types/qrcode": "^1.5.5",
     "commander": "^14.0.0",
     "open": "^10.1.2",
+    "qrcode": "^1.5.4",
     "sqlite3": "^5.1.7",
     "zod": "^3.25.23"
   }

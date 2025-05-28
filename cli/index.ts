@@ -136,8 +136,7 @@ cli
     const messages: { role: string; content: string }[] = [
       {
         role: "system",
-        content:
-          "You are a helpful AI assistant. You give short, accurate and concise answers.",
+        content: "You are a helpful AI assistant. Do whatever the user asks.",
       },
       {
         role: "user",

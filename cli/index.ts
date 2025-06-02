@@ -8,9 +8,26 @@ import { chats } from "./src/chats";
 
 const cli = new Command();
 
+async function parseInput(): Promise<string> {
+  const input = await new Promise<string>((resolve) => {
+    process.stdout.write("> ");
+    process.stdin.once("data", (data) => {
+      resolve(data.toString().trim());
+    });
+  });
+
+  const exitCommands = ["exit", "quit", "q"];
+
+  if (!input || exitCommands.includes(input.toLowerCase())) {
+    process.exit(0);
+  }
+  return input;
+}
+
 cli
   .name("q")
   .version("0.0.1")
+  .description("A CLI for interacting with AI models and managing chats")
   .action(async () => {
     let stdin = "";
 
@@ -37,6 +54,7 @@ const api = new API(c.token);
 
 cli
   .command("user")
+  .alias("u")
   .description("view user info")
   .action(async () => {
     const user = await api.user();
@@ -118,6 +136,7 @@ cli
 
 cli
   .command("model")
+  .alias("m")
   .description("view the current default model")
   .action(async () => {
     console.log(
@@ -127,10 +146,18 @@ cli
 
 cli
   .command("chat")
+  .alias("c")
   .description("start a new chat")
-  .argument("<input>", "input to the chat")
+  .argument("[input]", "input to the chat")
   // .option("-A", "use agent mode")
+  // .option("-m, --model <model>", "the model to use for the chat")
+  .option("-i, --interactive", "use interactive mode")
   .action(async (input, option) => {
+    if (!input) {
+      input = await parseInput();
+      process.stdout.write("\n");
+    }
+
     const prompt = "You are a helpful AI assistant. Do whatever the user asks.";
 
     const chatId: string = await db.insertChat({
@@ -169,24 +196,17 @@ cli
         content: reply,
       });
 
-      process.stdout.write("\n> ");
-
-      const userInput = await new Promise<string>((resolve) => {
-        process.stdin.once("data", (data) => {
-          resolve(data.toString().trim());
-        });
-      });
-
-      if (
-        userInput.toLowerCase() === "exit" ||
-        userInput.toLowerCase() === "quit"
-      ) {
+      if (!option.interactive) {
         process.exit(0);
       }
 
+      process.stdout.write("\n");
+
+      input = await parseInput();
+
       await chats.addMessage(db, chatId, {
         role: "user",
-        content: userInput,
+        content: input,
       });
 
       process.stdout.write("\n");

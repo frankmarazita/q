@@ -107,7 +107,5 @@ export async function processCompletions(
     }
   }
 
-  process.stdout.write("\n");
-
   return message;
 }

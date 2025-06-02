@@ -1,5 +1,11 @@
 import { DatabaseManager } from "./db";
 
+type Message = { role: string; content: string };
+
+type ChatData = {
+  messages: Message[];
+};
+
 const listChats = async (db: DatabaseManager) => {
   const chats = await db.getAllChats();
 
@@ -29,7 +35,7 @@ const listChats = async (db: DatabaseManager) => {
   ]);
 };
 
-const deleteChat = async (db: DatabaseManager, chatId: string) => {
+const getChat = async (db: DatabaseManager, chatId: string) => {
   const chat = await db.getChat(chatId);
 
   if (!chat) {
@@ -37,11 +43,41 @@ const deleteChat = async (db: DatabaseManager, chatId: string) => {
     return;
   }
 
+  return {
+    ...chat,
+    data: JSON.parse(chat.data) as ChatData,
+  };
+};
+
+const deleteChat = async (db: DatabaseManager, chatId: string) => {
+  const chat = await db.getChat(chatId);
+
+  if (!chat) return;
+
   await db.deleteChat(chatId);
-  console.log(`Chat with ID ${chatId} deleted.`);
+};
+
+const addMessage = async (
+  db: DatabaseManager,
+  chatId: string,
+  message: Message
+) => {
+  const chat = await db.getChat(chatId);
+
+  if (!chat) return;
+
+  const { messages } = JSON.parse(chat.data) as ChatData;
+
+  messages.push(message);
+
+  await db.updateChat(chatId, { messages });
+
+  return messages;
 };
 
 export const chats = {
   list: listChats,
+  get: getChat,
   delete: deleteChat,
+  addMessage: addMessage,
 };

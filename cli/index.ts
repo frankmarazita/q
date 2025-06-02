@@ -131,39 +131,66 @@ cli
   .argument("<input>", "input to the chat")
   // .option("-A", "use agent mode")
   .action(async (input, option) => {
-    await api.refreshCopilotToken();
+    const prompt = "You are a helpful AI assistant. Do whatever the user asks.";
 
-    const messages: { role: string; content: string }[] = [
-      {
-        role: "system",
-        content: "You are a helpful AI assistant. Do whatever the user asks.",
-      },
-      {
+    const chatId: string = await db.insertChat({
+      messages: [
+        {
+          role: "system",
+          content: prompt,
+        },
+        {
+          role: "user",
+          content: input,
+        },
+      ],
+    });
+
+    while (true) {
+      const chat = await chats.get(db, chatId);
+      if (!chat) throw new Error("Something went wrong...");
+
+      await api.refreshCopilotToken();
+
+      const completions = await api.completions("user", {
+        messages: chat.data.messages,
+        model: c.model ? c.model.id : undefined,
+        temperature: 0.1,
+        top_p: 1,
+        max_tokens: c.model?.capabilities.limits.max_output_tokens,
+        n: 1,
+        stream: true,
+      });
+
+      const reply = await processCompletions(completions);
+
+      await chats.addMessage(db, chatId, {
+        role: "assistant",
+        content: reply,
+      });
+
+      process.stdout.write("\n> ");
+
+      const userInput = await new Promise<string>((resolve) => {
+        process.stdin.once("data", (data) => {
+          resolve(data.toString().trim());
+        });
+      });
+
+      if (
+        userInput.toLowerCase() === "exit" ||
+        userInput.toLowerCase() === "quit"
+      ) {
+        process.exit(0);
+      }
+
+      await chats.addMessage(db, chatId, {
         role: "user",
-        content: input,
-      },
-    ];
+        content: userInput,
+      });
 
-    const chatId = await db.insertChat({ messages: messages });
-
-    const completions = await api.completions("user", {
-      messages: messages,
-      model: c.model ? c.model.id : undefined,
-      temperature: 0.1,
-      top_p: 1,
-      max_tokens: c.model?.capabilities.limits.max_output_tokens,
-      n: 1,
-      stream: true,
-    });
-
-    const reply = await processCompletions(completions);
-
-    messages.push({
-      role: "assistant",
-      content: reply,
-    });
-
-    await db.updateChat(chatId, { messages });
+      process.stdout.write("\n");
+    }
   });
 
 cli

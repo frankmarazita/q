@@ -3,7 +3,6 @@ import { API } from "./src/api";
 import { authenticate } from "./src/auth";
 import { loadConfig, processCompletions, updateConfig } from "./src/utils";
 import { setTimeout } from "node:timers";
-import { db } from "./src/db";
 import { chats } from "./src/chats";
 
 const cli = new Command();
@@ -160,7 +159,7 @@ cli
 
     const prompt = "You are a helpful AI assistant. Do whatever the user asks.";
 
-    const chatId: string = await db.insertChat({
+    const chatId: string = await chats.create({
       messages: [
         {
           role: "system",
@@ -174,7 +173,7 @@ cli
     });
 
     while (true) {
-      const chat = await chats.get(db, chatId);
+      const chat = await chats.get(chatId);
       if (!chat) throw new Error("Something went wrong...");
 
       await api.refreshCopilotToken();
@@ -191,7 +190,7 @@ cli
 
       const reply = await processCompletions(completions);
 
-      await chats.addMessage(db, chatId, {
+      await chats.addMessage(chatId, {
         role: "assistant",
         content: reply,
       });
@@ -204,7 +203,7 @@ cli
 
       input = await parseInput();
 
-      await chats.addMessage(db, chatId, {
+      await chats.addMessage(chatId, {
         role: "user",
         content: input,
       });
@@ -219,9 +218,9 @@ cli
   .option("-D, --delete <id>", "delete a chat by ID")
   .action(async (options) => {
     if (options.delete) {
-      await chats.delete(db, options.delete);
+      await chats.delete(options.delete);
     } else {
-      await chats.list(db);
+      await chats.list();
     }
   });
 

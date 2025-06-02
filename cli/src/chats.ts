@@ -1,4 +1,4 @@
-import { DatabaseManager } from "./db";
+import { db } from "./db";
 
 type Message = { role: string; content: string };
 
@@ -6,7 +6,7 @@ type ChatData = {
   messages: Message[];
 };
 
-const listChats = async (db: DatabaseManager) => {
+const listChats = async () => {
   const chats = await db.getAllChats();
 
   if (chats.length === 0) {
@@ -35,7 +35,7 @@ const listChats = async (db: DatabaseManager) => {
   ]);
 };
 
-const getChat = async (db: DatabaseManager, chatId: string) => {
+const getChat = async (chatId: string) => {
   const chat = await db.getChat(chatId);
 
   if (!chat) {
@@ -49,7 +49,12 @@ const getChat = async (db: DatabaseManager, chatId: string) => {
   };
 };
 
-const deleteChat = async (db: DatabaseManager, chatId: string) => {
+const createChat = async (data: ChatData) => {
+  const chatId = await db.insertChat(data);
+  return chatId;
+};
+
+const deleteChat = async (chatId: string) => {
   const chat = await db.getChat(chatId);
 
   if (!chat) return;
@@ -57,11 +62,7 @@ const deleteChat = async (db: DatabaseManager, chatId: string) => {
   await db.deleteChat(chatId);
 };
 
-const addMessage = async (
-  db: DatabaseManager,
-  chatId: string,
-  message: Message
-) => {
+const addMessage = async (chatId: string, message: Message) => {
   const chat = await db.getChat(chatId);
 
   if (!chat) return;
@@ -78,6 +79,7 @@ const addMessage = async (
 export const chats = {
   list: listChats,
   get: getChat,
+  create: createChat,
   delete: deleteChat,
   addMessage: addMessage,
 };

@@ -9,6 +9,7 @@ import {
 } from "./src/utils";
 import { setTimeout } from "node:timers";
 import { chats } from "./src/chats";
+import { readdir } from "node:fs/promises";
 
 const cli = new Command();
 
@@ -139,14 +140,39 @@ cli
   .argument("[input]", "input to the chat")
   // .option("-A", "use agent mode")
   // .option("-m, --model <model>", "the model to use for the chat")
+  .option("-p, --prompt <prompt>", "the prompt to use for the chat")
+  .option(
+    "-f, --prompt-file <file>",
+    "the prompt file to use for the chat form the prompt directory"
+  )
   .option("-i, --interactive", "use interactive mode")
   .action(async (input, option) => {
+    let prompt = "You are a helpful AI assistant. Do whatever the user asks.";
+
+    if (option.prompt) {
+      prompt = option.prompt;
+    } else if (option.promptFile) {
+      if (!c.promptDirectory) {
+        console.error(
+          "No prompt directory configured. Please set it in the config."
+        );
+        return;
+      }
+
+      const promptFile = Bun.file(
+        `${c.promptDirectory}/${option.promptFile}.md`
+      );
+      if (!(await promptFile.exists())) {
+        console.error(`Prompt file "${option.promptFile}" not found.`);
+        return;
+      }
+      prompt = await promptFile.text();
+    }
+
     if (!input) {
       input = await parseInput();
       process.stdout.write("\n");
     }
-
-    const prompt = "You are a helpful AI assistant. Do whatever the user asks.";
 
     const chatId: string = await chats.create({
       messages: [
@@ -211,6 +237,70 @@ cli
     } else {
       await chats.list();
     }
+  });
+
+cli
+  .command("set-prompt-dir")
+  .description("set the prompt directory")
+  .argument("<directory>", "the directory to set as prompt directory")
+  .action(async (directory) => {
+    let exists = false;
+
+    try {
+      await readdir(directory);
+      exists = true;
+    } catch (err) {
+      exists = false;
+    }
+
+    if (!exists) {
+      console.error(`Directory "${directory}" does not exist.`);
+      return;
+    }
+
+    await updateConfig({ promptDirectory: directory });
+
+    console.log(`Prompt directory set to: ${directory}`);
+  });
+
+cli
+  .command("prompt-dir")
+  .description("view the current prompt directory")
+  .action(async () => {
+    if (c.promptDirectory) {
+      console.log(`Current prompt directory: ${c.promptDirectory}`);
+    } else {
+      console.log("No prompt directory set.");
+    }
+  });
+
+cli
+  .command("prompts")
+  .description("list the available prompts")
+  .action(async () => {
+    if (!c.promptDirectory) {
+      console.error(
+        "No prompt directory configured. Please set it in the config."
+      );
+      return;
+    }
+
+    const files = await readdir(c.promptDirectory);
+    const prompts = files
+      .filter((file) => file.endsWith(".md"))
+      .map((file) => file.replace(/\.md$/, ""));
+
+    if (prompts.length === 0) {
+      console.log("No prompts found in the directory.");
+      return;
+    }
+
+    const formattedPrompts = prompts.map((prompt) => ({
+      name: prompt,
+      file: `${c.promptDirectory}/${prompt}.md`,
+    }));
+
+    console.table(formattedPrompts, ["name", "file"]);
   });
 
 cli.parse(process.argv);

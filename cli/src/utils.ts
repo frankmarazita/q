@@ -15,6 +15,7 @@ const zConfig = z.object({
     })
     .optional(),
   model: z.record(z.string(), z.any().optional()).optional(),
+  promptDirectory: z.string().optional(),
 });
 
 export type Config = z.infer<typeof zConfig>;

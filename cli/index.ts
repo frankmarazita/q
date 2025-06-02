@@ -1,27 +1,16 @@
 import { Command } from "commander";
 import { API } from "./src/api";
 import { authenticate } from "./src/auth";
-import { loadConfig, processCompletions, updateConfig } from "./src/utils";
+import {
+  loadConfig,
+  parseInput,
+  processCompletions,
+  updateConfig,
+} from "./src/utils";
 import { setTimeout } from "node:timers";
 import { chats } from "./src/chats";
 
 const cli = new Command();
-
-async function parseInput(): Promise<string> {
-  const input = await new Promise<string>((resolve) => {
-    process.stdout.write("> ");
-    process.stdin.once("data", (data) => {
-      resolve(data.toString().trim());
-    });
-  });
-
-  const exitCommands = ["exit", "quit", "q"];
-
-  if (!input || exitCommands.includes(input.toLowerCase())) {
-    process.exit(0);
-  }
-  return input;
-}
 
 cli
   .name("q")

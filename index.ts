@@ -303,4 +303,16 @@ cli
     console.table(formattedPrompts, ["name", "file"]);
   });
 
+cli
+  .command("serve")
+  .description("start the API server")
+  .option("-p, --port <port>", "the port to run the server on", "3000")
+  .action(async (options) => {
+    console.log(`Starting server on port ${options.port}...`);
+
+    console.log(
+      "Note: The server is not implemented yet. This command is a placeholder."
+    );
+  });
+
 cli.parse(process.argv);

@@ -2,6 +2,17 @@ import { loadConfig, updateConfig } from "./utils.ts";
 
 const URL = "https://api.github.com";
 
+function processError(error: string): never {
+  console.error(error);
+  process.exit(1);
+}
+
+function processApiError(res: Response, message?: string) {
+  let error = `${res.status} ${res.statusText}`;
+  message && (error = `${message}: ${error}`);
+  return processError(error);
+}
+
 export class API {
   private token: string;
   private copilotToken: string | undefined;
@@ -45,7 +56,7 @@ export class API {
     );
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch token: ${res.status} ${res.statusText}`);
+      processApiError(res, "Failed to fetch token");
     }
 
     const resJson = (await res.json()) as { token: string; expires_at: number };
@@ -75,9 +86,7 @@ export class API {
     });
 
     if (!res.ok) {
-      throw new Error(
-        `Failed to fetch models: ${res.status} ${res.statusText}`
-      );
+      processApiError(res, "Failed to fetch models");
     }
 
     const resJson = (await res.json()) as { data: Record<string, any>[] };
@@ -120,14 +129,12 @@ export class API {
     // returns a text/event-stream
 
     if (!res.ok) {
-      throw new Error(
-        `Failed to fetch completions: ${res.status} ${res.statusText}`
-      );
+      processApiError(res, "Failed to fetch completions");
     }
 
     const reader = res.body?.getReader();
     if (!reader) {
-      throw new Error("Failed to get reader from response body");
+      processError("Failed to get reader from response body");
     }
 
     return reader;

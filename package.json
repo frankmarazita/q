@@ -4,15 +4,15 @@
   "type": "module",
   "private": true,
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/node": "^22.15.21",
+    "@types/qrcode": "^1.5.5"
   },
   "peerDependencies": {
-    "typescript": "^5"
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "@octokit/oauth-methods": "^6.0.0",
-    "@types/node": "^22.15.21",
-    "@types/qrcode": "^1.5.5",
     "commander": "^14.0.0",
     "open": "^10.1.2",
     "qrcode": "^1.5.4",

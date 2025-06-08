@@ -2,9 +2,15 @@
   "name": "q",
   "module": "index.ts",
   "type": "module",
-  "private": true,
+  "scripts": {
+    "start": "bun index.ts",
+    "dev": "bun --watch index.ts",
+    "docker_build": "docker build --pull -t $npm_package_name .",
+    "docker_run": "docker run --env-file .env -d $npm_package_name --name $npm_package_name"
+  },
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/express": "^5.0.1",
     "@types/node": "^22.15.21",
     "@types/qrcode": "^1.5.5"
   },
@@ -13,7 +19,10 @@
   },
   "dependencies": {
     "@octokit/oauth-methods": "^6.0.0",
+    "@sentry/bun": "^9.27.0",
     "commander": "^14.0.0",
+    "body-parser": "^2.2.0",
+    "express": "^5.1.0",
     "open": "^10.1.2",
     "qrcode": "^1.5.4",
     "sqlite3": "^5.1.7",

@@ -1,4 +1,3 @@
-import { Command } from "commander";
 import { API } from "./src/api";
 import { authenticate } from "./src/auth";
 import {
@@ -7,9 +6,20 @@ import {
   processCompletions,
   updateConfig,
 } from "./src/utils";
-import { setTimeout } from "node:timers";
 import { chats } from "./src/chats";
+import { ENV } from "./src/env";
+import { app } from "./src/server";
+
+import { Command } from "commander";
+import { setTimeout } from "node:timers";
 import { readdir } from "node:fs/promises";
+import * as Sentry from "@sentry/bun";
+
+Sentry.init({
+  environment: ENV.ENVIRONMENT,
+  dsn: ENV.SENTRY_DSN,
+  tracesSampleRate: 1.0,
+});
 
 const cli = new Command();
 
@@ -308,11 +318,24 @@ cli
   .description("start the API server")
   .option("-p, --port <port>", "the port to run the server on", "3000")
   .action(async (options) => {
-    console.log(`Starting server on port ${options.port}...`);
+    const port = options.port;
 
-    console.log(
-      "Note: The server is not implemented yet. This command is a placeholder."
-    );
+    if (isNaN(Number(port))) {
+      console.error("Port must be a number.");
+      return;
+    }
+
+    app.listen(port, () => {
+      console.log("Server running on port:", port);
+    });
+
+    function exitHandler() {
+      console.log("Exiting...");
+      process.exit();
+    }
+
+    process.on("SIGINT", exitHandler);
+    process.on("SIGTERM", exitHandler);
   });
 
 cli.parse(process.argv);

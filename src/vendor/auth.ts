@@ -1,6 +1,6 @@
 import { createDeviceCode, exchangeDeviceCode } from "@octokit/oauth-methods";
 import open from "open";
-import { loadConfig, saveConfig } from "./utils";
+import { loadConfig, saveConfig } from "../services/config";
 import { toString as qr } from "qrcode";
 
 export const CLIENT_ID = "Iv1.b507a08c87ecfe98";

@@ -1,4 +1,4 @@
-import { loadConfig, updateConfig } from "./utils.ts";
+import { loadConfig, updateConfig } from "../services/config";
 
 const URL = "https://api.github.com";
 
@@ -108,13 +108,9 @@ export class API {
           "editor-version": "vscode/1.100.0",
           "openai-intent": "conversation-panel",
           "user-agent": "GitHubCopilotChat/0.27.2",
-          // "vscode-machineid": "dae49660216bf22e1736a40f46baeb46a336b33804cf18b82fda7c01bd6107ff",
-          // "vscode-sessionid": "27563f38-a45a-4c59-a1ff-5c75580f41b51747967240697",
           "x-github-api-version": "2025-05-01",
           "x-initiator": initiator,
-          // "x-interaction-id": "3d2b6e74-873b-42bc-8673-a1654bd43344",
           "x-interaction-type": "conversation-panel",
-          // "x-request-id": "bfb16c66-734f-40dd-b2dd-385b1215baf3",
           "x-vscode-user-agent-library-version": "electron-fetch",
           "sec-fetch-site": "none",
           "sec-fetch-mode": "no-cors",

@@ -18,8 +18,8 @@ export class DatabaseManager {
   private db: sqlite3.Database;
 
   constructor() {
-    // Ensure directory exists
     const dir = path.dirname(DATA_PATH);
+
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
@@ -32,12 +32,10 @@ export class DatabaseManager {
     // Enable WAL mode for better concurrency
     this.db.run("PRAGMA journal_mode = WAL");
 
-    // Create tables
     this.createTables();
   }
 
   private createTables(): void {
-    // Chats table
     this.db.run(`
       CREATE TABLE IF NOT EXISTS chats (
         id TEXT PRIMARY KEY,
@@ -48,7 +46,6 @@ export class DatabaseManager {
     `);
   }
 
-  // Chats methods
   insertChat(data: object, id?: string): Promise<string> {
     const recordId = id || randomUUID();
     return new Promise((resolve, reject) => {
@@ -105,44 +102,6 @@ export class DatabaseManager {
       });
     });
   }
-
-  // Utility methods
-  close(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.db.close((err) => {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
-  }
-
-  backup(backupPath: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      // First close the database to ensure all data is written
-      this.db.close((err) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-
-        try {
-          // Copy the database file to backup location
-          const dbPath =
-            (this.db as any).filename ||
-            path.join(process.cwd(), "data", "app.db");
-          fs.copyFileSync(dbPath, backupPath);
-
-          // Reopen the database
-          this.db = new sqlite3.Database(dbPath);
-          this.init();
-          resolve();
-        } catch (error) {
-          reject(error);
-        }
-      });
-    });
-  }
 }
 
-// Export singleton instance
 export const db = new DatabaseManager();

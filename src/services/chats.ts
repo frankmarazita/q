@@ -1,4 +1,4 @@
-import { db } from "./db";
+import { db } from "./../db";
 
 type Message = { role: string; content: string };
 

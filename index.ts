@@ -1,12 +1,9 @@
-import { API } from "./src/api";
-import { authenticate } from "./src/auth";
-import {
-  loadConfig,
-  parseInput,
-  processCompletions,
-  updateConfig,
-} from "./src/utils";
-import { chats } from "./src/chats";
+import { API } from "./src/vendor/api";
+import { authenticate } from "./src/vendor/auth";
+import { parseInput, processCompletions } from "./src/utils";
+import { chats } from "./src/services/chats";
+import { loadConfig, updateConfig } from "./src/services/config";
+import { models } from "./src/services/models";
 import { ENV } from "./src/env";
 import { app } from "./src/server";
 
@@ -47,9 +44,9 @@ cli
 
 await authenticate();
 
-const c = await loadConfig();
+const config = await loadConfig();
 
-const api = new API(c.token);
+export const api = new API(config.token);
 
 cli
   .command("user")
@@ -65,33 +62,9 @@ cli
   .command("models")
   .description("list the models")
   .action(async () => {
-    await api.refreshCopilotToken();
+    const res = await models.list();
 
-    let models = await api.models();
-
-    models = models.map((model) => {
-      const { capabilities } = model;
-
-      // console.log(JSON.stringify(capabilities, null, 2));
-
-      return {
-        id: model.id,
-        name: model.name,
-        vendor: model.vendor,
-        version: model.version,
-        capabilities_limits_max_output_tokens:
-          model.capabilities.limits.max_output_tokens,
-        capabilities_limits_max_prompt_tokens:
-          model.capabilities.limits.max_prompt_tokens,
-        parallel_tool_calls: model.capabilities.supports.parallel_tool_calls,
-        streaming: model.capabilities.supports.streaming,
-        structured_outputs: model.capabilities.supports.structured_outputs,
-        tool_calls: model.capabilities.supports.tool_calls,
-        vision: model.capabilities.supports.vision,
-      };
-    });
-
-    console.table(models, [
+    console.table(res, [
       "id",
       "name",
       "vendor",
@@ -111,26 +84,14 @@ cli
   .description("set the default model")
   .argument("<model>", "the model to set as default")
   .action(async (model) => {
-    await api.refreshCopilotToken();
+    const res = await models.set(model);
 
-    const models = await api.models();
-
-    let selectedModel: Record<string, any> | undefined = undefined;
-
-    for (const m of models) {
-      if (m.id === model || m.name === model) {
-        selectedModel = m;
-        break;
-      }
-    }
-
-    if (!selectedModel) {
-      console.error(`Model "${model}" is not available.`);
+    if (res.status === "error") {
+      console.error(res.message);
       return;
     }
 
-    await updateConfig({ model: selectedModel });
-    console.log(`Default model set to: ${selectedModel.name}`);
+    console.log(`Default model set to: ${res.model}`);
   });
 
 cli
@@ -138,9 +99,14 @@ cli
   .alias("m")
   .description("view the current default model")
   .action(async () => {
-    console.log(
-      c.model ? `Current model: ${c.model.name}` : "No default model set."
-    );
+    const res = await models.get();
+
+    if (res.status === "error") {
+      console.error(res.message);
+      return;
+    }
+
+    console.log(`Current default model: ${res.model}`);
   });
 
 cli
@@ -162,7 +128,7 @@ cli
     if (option.prompt) {
       prompt = option.prompt;
     } else if (option.promptFile) {
-      if (!c.promptDirectory) {
+      if (!config.promptDirectory) {
         console.error(
           "No prompt directory configured. Please set it in the config."
         );
@@ -170,7 +136,7 @@ cli
       }
 
       const promptFile = Bun.file(
-        `${c.promptDirectory}/${option.promptFile}.md`
+        `${config.promptDirectory}/${option.promptFile}.md`
       );
       if (!(await promptFile.exists())) {
         console.error(`Prompt file "${option.promptFile}" not found.`);
@@ -205,10 +171,10 @@ cli
 
       const completions = await api.completions("user", {
         messages: chat.data.messages,
-        model: c.model ? c.model.id : undefined,
+        model: config.model ? config.model.id : undefined,
         temperature: 0.1,
         top_p: 1,
-        max_tokens: c.model?.capabilities.limits.max_output_tokens,
+        max_tokens: config.model?.capabilities.limits.max_output_tokens,
         n: 1,
         stream: true,
       });
@@ -277,8 +243,8 @@ cli
   .command("prompt-dir")
   .description("view the current prompt directory")
   .action(async () => {
-    if (c.promptDirectory) {
-      console.log(`Current prompt directory: ${c.promptDirectory}`);
+    if (config.promptDirectory) {
+      console.log(`Current prompt directory: ${config.promptDirectory}`);
     } else {
       console.log("No prompt directory set.");
     }
@@ -288,14 +254,14 @@ cli
   .command("prompts")
   .description("list the available prompts")
   .action(async () => {
-    if (!c.promptDirectory) {
+    if (!config.promptDirectory) {
       console.error(
         "No prompt directory configured. Please set it in the config."
       );
       return;
     }
 
-    const files = await readdir(c.promptDirectory);
+    const files = await readdir(config.promptDirectory);
     const prompts = files
       .filter((file) => file.endsWith(".md"))
       .map((file) => file.replace(/\.md$/, ""));
@@ -307,7 +273,7 @@ cli
 
     const formattedPrompts = prompts.map((prompt) => ({
       name: prompt,
-      file: `${c.promptDirectory}/${prompt}.md`,
+      file: `${config.promptDirectory}/${prompt}.md`,
     }));
 
     console.table(formattedPrompts, ["name", "file"]);

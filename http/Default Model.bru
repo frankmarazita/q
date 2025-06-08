@@ -1,0 +1,15 @@
+meta {
+  name: Default Model
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{host}}/models/:model
+  body: none
+  auth: inherit
+}
+
+params:path {
+  model: gemini-2.0-flash-001
+}

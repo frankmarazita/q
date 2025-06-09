@@ -18,7 +18,7 @@ Be warnded that using this tool likely goes against GitHub's Terms of Service, a
 
 - List available models
 - Set a default model
-- Start a new chat with a model
+- Start a new chat
 - List previous chats
 - Use custom prompts
 - Pipe input to a new chat
@@ -26,7 +26,5 @@ Be warnded that using this tool likely goes against GitHub's Terms of Service, a
 ### TODO:
 
 - Continue a previous chat
-- Change the location of the config file and db to their own directory
-- Clean up prompts code into their own file
-- Ability to set a default prompt
-- Add mcp tools support
+- Set a default prompt
+- Add MCP tools / agent mode support

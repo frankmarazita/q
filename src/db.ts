@@ -4,8 +4,9 @@ import path from "path";
 import fs from "fs";
 import { promisify } from "util";
 import { randomUUID } from "crypto";
+import { CONFIG_FOLDER } from "./services/config";
 
-const DATA_PATH = path.join(os.homedir(), ".q.db");
+const DATA_PATH = path.join(CONFIG_FOLDER, "data.db");
 
 export interface Chat {
   id: string;

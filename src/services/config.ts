@@ -2,7 +2,9 @@ import os from "node:os";
 import * as path from "node:path";
 import { z } from "zod";
 
-const CONFIG_PATH = path.join(os.homedir(), ".q");
+export const CONFIG_FOLDER = path.join(os.homedir(), ".config", "q"); // /home/user/.config/q/
+
+const CONFIG_PATH = path.join(CONFIG_FOLDER, "config.json");
 
 const HOME = os.homedir();
 

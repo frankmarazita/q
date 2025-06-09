@@ -26,7 +26,7 @@ app.put("/models/:model", async (req, res) => {
     return;
   }
 
-  res.json({ message: `Default model set to: ${result.model}` });
+  res.json({ message: `Default model set to: ${result.data}` });
 });
 
 export { app };

@@ -1,16 +1,13 @@
 import { api } from "../../index";
+import type { Res } from "../types";
 import { loadConfig, updateConfig } from "./config";
 
-const listModels = async () => {
+async function listModels(): Promise<Res<Record<string, any>[]>> {
   await api.refreshCopilotToken();
 
   let models = await api.models();
 
   models = models.map((model) => {
-    const { capabilities } = model;
-
-    // console.log(JSON.stringify(capabilities, null, 2));
-
     return {
       id: model.id,
       name: model.name,
@@ -28,16 +25,13 @@ const listModels = async () => {
     };
   });
 
-  return models;
-};
+  return {
+    status: "success",
+    data: models,
+  };
+}
 
-async function setModel(model: string): Promise<
-  | {
-      status: "success";
-      model: string;
-    }
-  | { status: "error"; message: string }
-> {
+async function setModel(model: string): Promise<Res<string>> {
   await api.refreshCopilotToken();
 
   const models = await api.models();
@@ -62,11 +56,11 @@ async function setModel(model: string): Promise<
 
   return {
     status: "success",
-    model: selectedModel.name,
+    data: selectedModel.name,
   };
 }
 
-const getModel = async () => {
+async function getModel(): Promise<Res<string>> {
   const c = await loadConfig();
 
   if (!c.model) {
@@ -78,9 +72,9 @@ const getModel = async () => {
 
   return {
     status: "success",
-    model: c.model,
+    data: c.model.name,
   };
-};
+}
 
 export const models = {
   list: listModels,

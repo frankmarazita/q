@@ -20,8 +20,9 @@
   "dependencies": {
     "@octokit/oauth-methods": "^6.0.0",
     "@sentry/bun": "^9.27.0",
-    "commander": "^14.0.0",
     "body-parser": "^2.2.0",
+    "commander": "^14.0.0",
+    "comment-json": "^4.2.5",
     "express": "^5.1.0",
     "open": "^10.1.2",
     "qrcode": "^1.5.4",

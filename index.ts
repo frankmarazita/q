@@ -12,6 +12,8 @@ import { setTimeout } from "node:timers";
 import { readdir } from "node:fs/promises";
 import * as Sentry from "@sentry/bun";
 
+const VERSION = "0.0.1";
+
 Sentry.init({
   environment: ENV.ENVIRONMENT,
   dsn: ENV.SENTRY_DSN,
@@ -22,7 +24,7 @@ const cli = new Command();
 
 cli
   .name("q")
-  .version("0.0.1")
+  .version(VERSION)
   .description("A CLI for interacting with AI models and managing chats")
   .action(async () => {
     let stdin = "";
@@ -64,7 +66,12 @@ cli
   .action(async () => {
     const res = await models.list();
 
-    console.table(res, [
+    if (res.status === "error") {
+      console.error(res.message);
+      return;
+    }
+
+    console.table(res.data, [
       "id",
       "name",
       "vendor",
@@ -114,7 +121,7 @@ cli
   .alias("c")
   .description("start a new chat")
   .argument("[input]", "input to the chat")
-  // .option("-A", "use agent mode")
+  .option("-A, --agent", "use agent mode")
   // .option("-m, --model <model>", "the model to use for the chat")
   .option("-p, --prompt <prompt>", "the prompt to use for the chat")
   .option(
@@ -123,7 +130,8 @@ cli
   )
   .option("-i, --interactive", "use interactive mode")
   .action(async (input, option) => {
-    let prompt = "You are a helpful AI assistant. Do whatever the user asks.";
+    let prompt =
+      "You are a helpful AI assistant in a CLI. Do whatever the user asks.";
 
     if (option.prompt) {
       prompt = option.prompt;

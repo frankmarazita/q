@@ -28,7 +28,7 @@ export async function processCompletions(
     for (let i = 0; i < lines.length; i++) {
       let line = lines[i]?.trim();
       if (!line) continue; // Skip empty lines
-      // console.log("%" + line + "%");
+      // console.log("<<<" + line + ">>>");
 
       if (line.startsWith("data: ")) {
         // Remove "data: " prefix if present

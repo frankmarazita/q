@@ -7,11 +7,23 @@ import { z } from "zod";
 const zMCP = z.object({
   servers: z.record(
     z.string(),
-    z.object({
-      type: z.union([z.literal("sse"), z.literal("http")]),
-      url: z.string().url(),
-      headers: z.record(z.string(), z.string()).optional(),
-    })
+    z.discriminatedUnion("type", [
+      z.object({
+        type: z.literal("sse"),
+        url: z.string().url(),
+        headers: z.record(z.string(), z.string()).optional(),
+      }),
+      z.object({
+        type: z.literal("http"),
+        url: z.string().url(),
+        headers: z.record(z.string(), z.string()).optional(),
+      }),
+      z.object({
+        type: z.literal("stdio"),
+        command: z.string(),
+        args: z.array(z.string()).optional(),
+      }),
+    ])
   ),
 });
 

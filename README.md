@@ -1,4 +1,8 @@
-# q
+# q (GitHub Copilot Chat CLI)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Bun](https://img.shields.io/badge/runtime-bun-black.svg)](https://bun.sh/)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/frankmarazita/q/ci.yml)](https://github.com/frankmarazita/q/actions/workflows/ci.yml)
 
 A custom CLI tool for GitHub Copilot Chat.
 

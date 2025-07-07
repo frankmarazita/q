@@ -1,7 +1,7 @@
 services:
   app:
     image: "ghcr.io/frankmarazita/q:latest"
-    container_name: q
+    container_name: q-server
     network_mode: host
     command: "bun run index.ts --port ${PORT}"
     environment:

@@ -3,7 +3,7 @@ services:
     image: "ghcr.io/frankmarazita/q:latest"
     container_name: q-server
     network_mode: host
-    command: "bun run index.ts --port ${PORT}"
+    command: "bun run index.ts serve --port ${PORT}"
     environment:
       ENVIRONMENT: ${ENVIRONMENT}
       SENTRY_DSN: ${SENTRY_DSN}

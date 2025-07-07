@@ -1,6 +1,10 @@
 import { db } from "./../db";
 
-type Message = { role: string; content: string };
+type Message = {
+  role: "system" | "user" | "assistant" | "tool";
+  content: string;
+  tool_calls?: any[];
+};
 
 type ChatData = {
   messages: Message[];

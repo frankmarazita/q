@@ -1,0 +1,10 @@
+services:
+  app:
+    image: "ghcr.io/frankmarazita/q:latest"
+    container_name: q
+    network_mode: host
+    command: "bun run index.ts --port ${PORT}"
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT}
+      SENTRY_DSN: ${SENTRY_DSN}
+    restart: on-failure:5

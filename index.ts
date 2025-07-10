@@ -98,7 +98,7 @@ cli
       return;
     }
 
-    console.log(`Default model set to: ${res.data}`);
+    console.log(`Default model set to: ${res.data.name} (${res.data.id})`);
   });
 
 cli
@@ -113,7 +113,7 @@ cli
       return;
     }
 
-    console.log(`Current default model: ${res.data}`);
+    console.log(`Current default model: ${res.data.name} (${res.data.id})`);
   });
 
 cli
@@ -126,7 +126,7 @@ cli
   .option("-p, --prompt <prompt>", "the prompt to use for the chat")
   .option(
     "-f, --prompt-file <file>",
-    "the prompt file to use for the chat form the prompt directory"
+    "the prompt file to use for the chat from the prompt directory"
   )
   .option("-i, --interactive", "use interactive mode")
   .action(async (input, option) => {

@@ -2,7 +2,9 @@ import { api } from "../../index";
 import type { Res } from "../types";
 import { loadConfig, updateConfig } from "./config";
 
-async function listModels(): Promise<Res<Record<string, any>[]>> {
+type Model = Record<string, any>;
+
+async function listModels(): Promise<Res<Model[]>> {
   await api.refreshCopilotToken();
 
   let models = await api.models();
@@ -31,12 +33,12 @@ async function listModels(): Promise<Res<Record<string, any>[]>> {
   };
 }
 
-async function setModel(model: string): Promise<Res<string>> {
+async function setModel(model: string): Promise<Res<Model>> {
   await api.refreshCopilotToken();
 
   const models = await api.models();
 
-  let selectedModel: Record<string, any> | undefined = undefined;
+  let selectedModel: Model | undefined = undefined;
 
   for (const m of models) {
     if (m.id === model || m.name === model) {
@@ -56,11 +58,11 @@ async function setModel(model: string): Promise<Res<string>> {
 
   return {
     status: "success",
-    data: selectedModel.name,
+    data: selectedModel,
   };
 }
 
-async function getModel(): Promise<Res<string>> {
+async function getModel(): Promise<Res<Model>> {
   const c = await loadConfig();
 
   if (!c.model) {
@@ -72,7 +74,7 @@ async function getModel(): Promise<Res<string>> {
 
   return {
     status: "success",
-    data: c.model.name,
+    data: c.model,
   };
 }
 

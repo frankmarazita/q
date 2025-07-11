@@ -1,0 +1,33 @@
+meta {
+  name: Chat - Basic
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{host}}/chat
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "input": "Hello, how are you today?"
+  }
+}
+
+tests {
+  test("should return 200 status", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return chat response", function() {
+    expect(res.getBody()).to.have.property('message');
+    expect(res.getBody()).to.have.property('chatId');
+  });
+  
+  test("should return valid chatId", function() {
+    expect(res.getBody().chatId).to.be.a('string');
+    expect(res.getBody().chatId).to.have.lengthOf.greaterThan(0);
+  });
+}

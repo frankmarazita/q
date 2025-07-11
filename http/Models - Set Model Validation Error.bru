@@ -1,0 +1,17 @@
+meta {
+  name: Models - Set Model Validation Error
+  type: http
+  seq: 10
+}
+
+put {
+  url: {{host}}/models/
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("should return 404 status for missing model param", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+}

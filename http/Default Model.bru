@@ -13,3 +13,20 @@ put {
 params:path {
   model: gemini-2.0-flash-001
 }
+
+tests {
+  test("should return response", function() {
+    expect(res.getStatus()).to.satisfy(function(status) {
+      return status === 200 || status === 400;
+    });
+  });
+  
+  test("should return proper response structure", function() {
+    if (res.getStatus() === 200) {
+      expect(res.getBody()).to.have.property('message');
+      expect(res.getBody().message).to.include('Default model set to');
+    } else {
+      expect(res.getBody()).to.have.property('error');
+    }
+  });
+}

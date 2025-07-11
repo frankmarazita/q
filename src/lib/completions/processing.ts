@@ -65,8 +65,7 @@ export async function processCompletionStream(
 
   let done = false;
   let message = "";
-  let toolCallsObj: object[] = [];
-  let toolCallsArgsStr: string[] = [];
+  let toolCallsObj: any[] = [];
   let partialJsonString = "";
 
   while (!done) {
@@ -99,21 +98,21 @@ export async function processCompletionStream(
   }
 
   if (toolCallsObj.length > 0) {
-    const toolCallsArgs: (object | undefined)[] = [];
-
-    for (const toolCallsArgsStrItem of toolCallsArgsStr) {
-      const argsResult = parseToolCallArguments(toolCallsArgsStrItem);
-      toolCallsArgs.push(
-        argsResult.status === "success" ? argsResult.data : undefined
-      );
-    }
-
     return {
       type: "tool-calls",
-      toolCalls: toolCallsObj.map((toolCall, index) => ({
-        function: toolCall,
-        arguments: toolCallsArgs[index] || {},
-      })),
+      toolCalls: toolCallsObj.map((toolCall) => {
+        let parsedArgs = {};
+        if (toolCall.function?.arguments) {
+          const argsResult = parseToolCallArguments(
+            toolCall.function.arguments
+          );
+          parsedArgs = argsResult.status === "success" ? argsResult.data : {};
+        }
+        return {
+          function: toolCall,
+          arguments: parsedArgs,
+        };
+      }),
     };
   }
 

@@ -1,0 +1,36 @@
+meta {
+  name: Chat - Code Request
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{host}}/chat
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "input": "Write a simple function in JavaScript that adds two numbers together",
+    "prompt": "You are a helpful programming assistant. Provide clean, well-commented code."
+  }
+}
+
+tests {
+  test("should return 200 status", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return chat response", function() {
+    expect(res.getBody()).to.have.property('message');
+    expect(res.getBody()).to.have.property('chatId');
+  });
+  
+  test("should contain code-related content", function() {
+    expect(res.getBody().message).to.be.a('string');
+    expect(res.getBody().message.toLowerCase()).to.satisfy(function(msg) {
+      return msg.includes('function') || msg.includes('javascript') || msg.includes('return');
+    });
+  });
+}

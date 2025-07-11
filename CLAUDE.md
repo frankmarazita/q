@@ -13,6 +13,12 @@ This file should be updated by you when you are told of reminders of how you do 
 - When making new changes in the codebase, first check how things are done elsewhere to validate your approach. This helps maintain consistency across the codebase and ensures that new changes align with existing patterns and practices.
 - Don't create functions are that not going to be used. If a function is not needed, it should not be created. This helps keep the codebase clean and focused on necessary functionality. Otherwise, we end up maintaining dead code that serves no purpose.
 
+- When writing code, remember to run:
+  - tests
+  - type checking
+  - linting (warnings are allowed, but errors must be fixed)
+  - formatting
+
 ## Core Purpose
 
 This is a custom CLI tool called "q" that provides command-line access to GitHub Copilot Chat API through reverse engineering. It's designed as a more convenient way to interact with Copilot Chat outside of the official GitHub interfaces.

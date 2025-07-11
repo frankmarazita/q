@@ -1,0 +1,31 @@
+meta {
+  name: Chat - Validation Error - Invalid JSON
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{host}}/chat
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "input": "Hello world",
+    "extraField": "should not be here",
+    "anotherField": 123
+  }
+}
+
+tests {
+  test("should return 200 status for extra fields", function() {
+    // Note: Extra fields are allowed by zod by default
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should still process valid fields", function() {
+    expect(res.getBody()).to.have.property('message');
+    expect(res.getBody()).to.have.property('chatId');
+  });
+}

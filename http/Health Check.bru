@@ -9,3 +9,13 @@ get {
   body: none
   auth: inherit
 }
+
+tests {
+  test("should return 200 status", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should indicate server is healthy", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

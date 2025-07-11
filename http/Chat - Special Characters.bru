@@ -1,0 +1,34 @@
+meta {
+  name: Chat - Special Characters
+  type: http
+  seq: 16
+}
+
+post {
+  url: {{host}}/chat
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "input": "Hello! 🌍 How are you? Test special chars: @#$%^&*()_+{}|:<>?[]\\;'\",./ 你好 مرحبا",
+    "prompt": "You are a helpful assistant that handles all types of text input gracefully."
+  }
+}
+
+tests {
+  test("should return 200 status", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return chat response", function() {
+    expect(res.getBody()).to.have.property('message');
+    expect(res.getBody()).to.have.property('chatId');
+  });
+  
+  test("should handle special characters", function() {
+    expect(res.getBody().message).to.be.a('string');
+    expect(res.getBody().message.length).to.be.greaterThan(0);
+  });
+}

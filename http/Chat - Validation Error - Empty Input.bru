@@ -1,0 +1,29 @@
+meta {
+  name: Chat - Validation Error - Empty Input
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{host}}/chat
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "input": "",
+    "prompt": "You are a helpful assistant"
+  }
+}
+
+tests {
+  test("should return 400 status", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("should return validation error", function() {
+    expect(res.getBody()).to.have.property('error');
+    expect(res.getBody().error).to.include('Input message is required');
+  });
+}

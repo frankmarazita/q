@@ -2,8 +2,19 @@ import type { Command } from "commander";
 import type { CommandContext } from "./types";
 import { parseInput } from "../input/parser";
 import { chats } from "../../services/chats";
-import { processCompletions } from "../../utils";
+import {
+  processChat,
+  addUserMessage,
+  processExistingChat,
+} from "../../services/chat";
 import { loadMCPClients, type MCPClientData } from "../mcp/client";
+import type { StreamEvent } from "../../lib/completions";
+
+const onEvent = (event: StreamEvent) => {
+  if (event.type === "content" && event.data) {
+    process.stdout.write(event.data);
+  }
+};
 
 export function register(program: Command, context: CommandContext): void {
   program
@@ -44,25 +55,6 @@ async function handleChatCommand(
     process.stdout.write("\n");
   }
 
-  const chatResult = await chats.create({
-    messages: [
-      {
-        role: "system",
-        content: prompt,
-      },
-      {
-        role: "user",
-        content: input,
-      },
-    ],
-  });
-
-  if (chatResult.status === "error") {
-    console.error(chatResult.message);
-    return;
-  }
-
-  const chatId = chatResult.data;
   const tools: { function: any; type: string }[] = [];
   const clients: Record<string, MCPClientData> | undefined = options.agent
     ? await loadMCPClients("0.0.1")
@@ -96,6 +88,75 @@ async function handleChatCommand(
     }
   }
 
+  const chatResult = await processChat({ input, prompt, tools }, onEvent);
+
+  if (chatResult.status === "error") {
+    console.error(chatResult.message);
+    return;
+  }
+
+  const { chatId, result: reply } = chatResult.data;
+
+  if (reply.type === "tool-calls") {
+    if (clients) {
+      await chats.addMessage(chatId, {
+        role: "assistant",
+        content: "",
+        tool_calls: reply.toolCalls.map((toolCall) => ({
+          id: toolCall.function.id,
+          function: {
+            name: toolCall.function.function.name,
+            arguments: JSON.stringify(toolCall.arguments, null, 2),
+          },
+          type: "function",
+        })),
+      });
+
+      const toolCallResponses: {
+        role: "tool";
+        content: string;
+        tool_call_id: string;
+      }[] = [];
+
+      for (const toolCall of reply.toolCalls) {
+        console.log(`Calling tool: ${toolCall.function.function.name}`);
+
+        const client = Object.entries(clients).find(([, { tools }]) =>
+          tools.includes(toolCall.function.function.name)
+        );
+
+        if (!client) {
+          console.error(
+            `No MCP client found for tool: ${toolCall.function.function.name}`
+          );
+          continue;
+        }
+
+        const res = await client[1].client.callTool({
+          name: toolCall.function.function.name,
+          arguments: toolCall.arguments,
+        });
+
+        toolCallResponses.push({
+          role: "tool",
+          content: (res.content as any)[0].text,
+          tool_call_id: toolCall.function.id,
+        });
+      }
+
+      for (const toolCallResponse of toolCallResponses) {
+        await chats.addMessage(chatId, toolCallResponse);
+      }
+
+      // Process AI response to tool results (this should be the final response)
+      await processAIResponse(chatId, tools, clients, onEvent);
+    }
+  }
+
+  if (!options.interactive) {
+    process.exit(0);
+  }
+
   await runChatLoop(chatId, tools, clients, options, context);
 }
 
@@ -125,95 +186,11 @@ async function runChatLoop(
   tools: { function: any; type: string }[],
   clients: Record<string, MCPClientData> | undefined,
   options: any,
-  context: CommandContext
+  _context: CommandContext
 ): Promise<void> {
   let input: string;
 
   while (true) {
-    const chatResult = await chats.get(chatId);
-    if (chatResult.status === "error") {
-      console.error(chatResult.message);
-      return;
-    }
-    const chat = chatResult.data;
-
-    await context.api.refreshCopilotToken();
-
-    const completions = await context.api.completions("user", {
-      messages: chat.data.messages,
-      model: context.config.model ? context.config.model.id : undefined,
-      temperature: 0.1,
-      top_p: 1,
-      max_tokens: context.config.model?.capabilities.limits.max_output_tokens,
-      tools: tools.length > 0 ? tools : undefined,
-      n: 1,
-      stream: true,
-    });
-
-    const reply = await processCompletions(completions);
-
-    if (reply.type === "message") {
-      await chats.addMessage(chatId, {
-        role: "assistant",
-        content: reply.message,
-      });
-    }
-
-    if (reply.type === "tool-calls") {
-      if (clients) {
-        await chats.addMessage(chatId, {
-          role: "assistant",
-          content: "",
-          tool_calls: reply.toolCalls.map((toolCall) => ({
-            id: toolCall.function.id,
-            function: {
-              name: toolCall.function.function.name,
-              arguments: JSON.stringify(toolCall.arguments, null, 2),
-            },
-            type: "function",
-          })),
-        });
-
-        const toolCallResponses: {
-          role: "tool";
-          content: string;
-          tool_call_id: string;
-        }[] = [];
-
-        for (const toolCall of reply.toolCalls) {
-          console.log(`Calling tool: ${toolCall.function.function.name}`);
-
-          const client = Object.entries(clients).find(([, { tools }]) =>
-            tools.includes(toolCall.function.function.name)
-          );
-
-          if (!client) {
-            console.error(
-              `No MCP client found for tool: ${toolCall.function.function.name}`
-            );
-            continue;
-          }
-
-          const res = await client[1].client.callTool({
-            name: toolCall.function.function.name,
-            arguments: toolCall.arguments,
-          });
-
-          toolCallResponses.push({
-            role: "tool",
-            content: (res.content as any)[0].text,
-            tool_call_id: toolCall.function.id,
-          });
-        }
-
-        for (const toolCallResponse of toolCallResponses) {
-          await chats.addMessage(chatId, toolCallResponse);
-        }
-
-        continue;
-      }
-    }
-
     if (!options.interactive) {
       process.exit(0);
     }
@@ -222,11 +199,88 @@ async function runChatLoop(
 
     input = await parseInput();
 
-    await chats.addMessage(chatId, {
-      role: "user",
-      content: input,
-    });
+    const addMessageResult = await addUserMessage(chatId, input);
+    if (addMessageResult.status === "error") {
+      console.error(addMessageResult.message);
+      return;
+    }
 
     process.stdout.write("\n");
+
+    // Process AI response (may include tool calls)
+    await processAIResponse(chatId, tools, clients, onEvent);
   }
+}
+
+async function processAIResponse(
+  chatId: string,
+  tools: { function: any; type: string }[],
+  clients: Record<string, MCPClientData> | undefined,
+  onEvent: (event: StreamEvent) => void
+): Promise<void> {
+  const replyResult = await processExistingChat(chatId, tools, onEvent);
+
+  if (replyResult.status === "error") {
+    console.error(replyResult.message);
+    return;
+  }
+
+  const reply = replyResult.data;
+
+  if (reply.type === "tool-calls") {
+    if (clients) {
+      await chats.addMessage(chatId, {
+        role: "assistant",
+        content: "",
+        tool_calls: reply.toolCalls.map((toolCall) => ({
+          id: toolCall.function.id,
+          function: {
+            name: toolCall.function.function.name,
+            arguments: JSON.stringify(toolCall.arguments, null, 2),
+          },
+          type: "function",
+        })),
+      });
+
+      const toolCallResponses: {
+        role: "tool";
+        content: string;
+        tool_call_id: string;
+      }[] = [];
+
+      for (const toolCall of reply.toolCalls) {
+        console.log(`Calling tool: ${toolCall.function.function.name}`);
+
+        const client = Object.entries(clients).find(([, { tools }]) =>
+          tools.includes(toolCall.function.function.name)
+        );
+
+        if (!client) {
+          console.error(
+            `No MCP client found for tool: ${toolCall.function.function.name}`
+          );
+          continue;
+        }
+
+        const res = await client[1].client.callTool({
+          name: toolCall.function.function.name,
+          arguments: toolCall.arguments,
+        });
+
+        toolCallResponses.push({
+          role: "tool",
+          content: (res.content as any)[0].text,
+          tool_call_id: toolCall.function.id,
+        });
+      }
+
+      for (const toolCallResponse of toolCallResponses) {
+        await chats.addMessage(chatId, toolCallResponse);
+      }
+
+      // Process AI response to tool results (this should be the final response)
+      await processAIResponse(chatId, tools, clients, onEvent);
+    }
+  }
+  // If it's not a tool call, the AI has provided a final response and we're done
 }

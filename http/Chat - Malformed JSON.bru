@@ -1,0 +1,29 @@
+meta {
+  name: Chat - Malformed JSON
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{host}}/chat
+  body: text
+  auth: inherit
+}
+
+body:text {
+  {
+    "input": "Hello world"
+    "missing_comma": true
+  }
+}
+
+tests {
+  test("should return 400 status for malformed JSON", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("should return validation error", function() {
+    expect(res.getBody()).to.have.property('error');
+    expect(res.getBody().error).to.equal('Required');
+  });
+}

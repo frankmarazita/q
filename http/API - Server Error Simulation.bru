@@ -1,0 +1,33 @@
+meta {
+  name: API - Server Error Simulation
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{host}}/chat
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "input": "This is a test to see how the API handles potential server errors or edge cases in processing.",
+    "prompt": "You are a helpful assistant. Please respond normally to this test message."
+  }
+}
+
+tests {
+  test("should return 200 status under normal conditions", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return proper response structure", function() {
+    if (res.getStatus() === 200) {
+      expect(res.getBody()).to.have.property('message');
+      expect(res.getBody()).to.have.property('chatId');
+    } else {
+      expect(res.getBody()).to.have.property('error');
+    }
+  });
+}

@@ -1,0 +1,22 @@
+meta {
+  name: Models - Set Model
+  type: http
+  seq: 9
+}
+
+put {
+  url: {{host}}/models/non-existent-model
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("should return 400 status for invalid model", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("should return model error", function() {
+    expect(res.getBody()).to.have.property('error');
+    expect(res.getBody().error).to.include('not available');
+  });
+}

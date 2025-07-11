@@ -1,81 +1,41 @@
-import { api } from "../../index";
-import type { Res } from "../types";
+import { getAPI } from "../lib/api/singleton";
 import { loadConfig, updateConfig } from "./config";
+import { 
+  transformModels, 
+  findModelByIdOrName, 
+  validateModelExists, 
+  validateConfigHasModel 
+} from "../lib/models";
+import { createSuccessResponse } from "../lib/common";
+import type { Res } from "../lib/common/types";
+import type { Model, TransformedModel } from "../lib/models/types";
 
-type Model = Record<string, any>;
-
-async function listModels(): Promise<Res<Model[]>> {
+async function listModels(): Promise<Res<TransformedModel[]>> {
+  const api = getAPI();
   await api.refreshCopilotToken();
-
-  let models = await api.models();
-
-  models = models.map((model) => {
-    return {
-      id: model.id,
-      name: model.name,
-      vendor: model.vendor,
-      version: model.version,
-      capabilities_limits_max_output_tokens:
-        model.capabilities.limits.max_output_tokens,
-      capabilities_limits_max_prompt_tokens:
-        model.capabilities.limits.max_prompt_tokens,
-      parallel_tool_calls: model.capabilities.supports.parallel_tool_calls,
-      streaming: model.capabilities.supports.streaming,
-      structured_outputs: model.capabilities.supports.structured_outputs,
-      tool_calls: model.capabilities.supports.tool_calls,
-      vision: model.capabilities.supports.vision,
-    };
-  });
-
-  return {
-    status: "success",
-    data: models,
-  };
+  const models = await api.models() as Model[];
+  const transformedModels = transformModels(models);
+  return createSuccessResponse(transformedModels);
 }
 
-async function setModel(model: string): Promise<Res<Model>> {
+async function setModel(modelName: string): Promise<Res<Model>> {
+  const api = getAPI();
   await api.refreshCopilotToken();
-
-  const models = await api.models();
-
-  let selectedModel: Model | undefined = undefined;
-
-  for (const m of models) {
-    if (m.id === model || m.name === model) {
-      selectedModel = m;
-      break;
-    }
+  const models = await api.models() as Model[];
+  const selectedModel = findModelByIdOrName(models, modelName);
+  
+  const validationResult = validateModelExists(selectedModel, modelName);
+  if (validationResult.status === "error") {
+    return validationResult;
   }
 
-  if (selectedModel === undefined) {
-    return {
-      status: "error",
-      message: `Model "${model}" is not available.`,
-    };
-  }
-
-  await updateConfig({ model: selectedModel });
-
-  return {
-    status: "success",
-    data: selectedModel,
-  };
+  await updateConfig({ model: validationResult.data });
+  return createSuccessResponse(validationResult.data);
 }
 
 async function getModel(): Promise<Res<Model>> {
-  const c = await loadConfig();
-
-  if (!c.model) {
-    return {
-      status: "error",
-      message: "No default model set.",
-    };
-  }
-
-  return {
-    status: "success",
-    data: c.model,
-  };
+  const config = await loadConfig();
+  return validateConfigHasModel(config);
 }
 
 export const models = {

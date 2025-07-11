@@ -1,84 +1,93 @@
-import { db } from "./../db";
+import { db } from "../db";
+import {
+  createChatSummaries,
+  parseRawChat,
+  validateChatExists,
+  addMessageToChat,
+} from "../lib/chats";
+import type { ChatData, Message, ChatSummary } from "../lib/chats/types";
+import type { Res } from "../lib/common/types";
+import {
+  createSuccessResponse,
+  createErrorResponse,
+} from "../lib/common/response";
 
-type Message = {
-  role: "system" | "user" | "assistant" | "tool";
-  content: string;
-  tool_calls?: any[];
-};
+async function listChats(): Promise<Res<ChatSummary[]>> {
+  const rawChats = await db.getAllChats();
 
-type ChatData = {
-  messages: Message[];
-};
-
-const listChats = async () => {
-  const chats = await db.getAllChats();
-
-  if (chats.length === 0) {
-    console.log("No chats found.");
-    return;
+  if (rawChats.length === 0) {
+    return createSuccessResponse([]);
   }
 
-  const formattedChats = chats.map((chat) => {
-    const m = JSON.parse(chat.data).messages;
+  const summaries = createChatSummaries(rawChats);
+  return createSuccessResponse(summaries);
+}
 
-    return {
-      id: chat.id,
-      message: m[1].content.slice(0, 20) + "...",
-      created_at: chat.created_at,
-      updated_at: chat.updated_at,
-      chat_length: m.length,
-    };
-  });
+async function getChat(chatId: string): Promise<
+  Res<{
+    id: string;
+    data: ChatData;
+    created_at: string;
+    updated_at: string;
+  }>
+> {
+  const rawChat = await db.getChat(chatId);
 
-  console.table(formattedChats, [
-    "id",
-    "message",
-    "created_at",
-    "updated_at",
-    "chat_length",
-  ]);
-};
-
-const getChat = async (chatId: string) => {
-  const chat = await db.getChat(chatId);
-
-  if (!chat) {
-    console.error(`Chat with ID ${chatId} not found.`);
-    return;
+  const validationResult = validateChatExists(rawChat, chatId);
+  if (validationResult.status === "error") {
+    return validationResult;
   }
 
-  return {
-    ...chat,
-    data: JSON.parse(chat.data) as ChatData,
-  };
-};
+  const parsedChat = parseRawChat(validationResult.data);
+  return createSuccessResponse(parsedChat);
+}
 
-const createChat = async (data: ChatData) => {
-  const chatId = await db.insertChat(data);
-  return chatId;
-};
+async function createChat(data: ChatData): Promise<Res<string>> {
+  try {
+    const chatId = await db.insertChat(data);
+    return createSuccessResponse(chatId);
+  } catch (error) {
+    return createErrorResponse("Failed to create chat");
+  }
+}
 
-const deleteChat = async (chatId: string) => {
-  const chat = await db.getChat(chatId);
+async function deleteChat(chatId: string): Promise<Res<void>> {
+  const rawChat = await db.getChat(chatId);
 
-  if (!chat) return;
+  const validationResult = validateChatExists(rawChat, chatId);
+  if (validationResult.status === "error") {
+    return validationResult;
+  }
 
-  await db.deleteChat(chatId);
-};
+  try {
+    await db.deleteChat(chatId);
+    return createSuccessResponse(undefined);
+  } catch (error) {
+    return createErrorResponse("Failed to delete chat");
+  }
+}
 
-const addMessage = async (chatId: string, message: Message) => {
-  const chat = await db.getChat(chatId);
+async function addMessage(
+  chatId: string,
+  message: Message
+): Promise<Res<Message[]>> {
+  const rawChat = await db.getChat(chatId);
 
-  if (!chat) return;
+  const validationResult = validateChatExists(rawChat, chatId);
+  if (validationResult.status === "error") {
+    return validationResult;
+  }
 
-  const { messages } = JSON.parse(chat.data) as ChatData;
+  const parsedChat = parseRawChat(validationResult.data);
+  const updatedChatData = addMessageToChat(parsedChat.data, message);
 
-  messages.push(message);
-
-  await db.updateChat(chatId, { messages });
-
-  return messages;
-};
+  try {
+    await db.updateChat(chatId, updatedChatData);
+    return createSuccessResponse(updatedChatData.messages);
+  } catch (error) {
+    return createErrorResponse("Failed to add message to chat");
+  }
+}
 
 export const chats = {
   list: listChats,

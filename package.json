@@ -6,6 +6,7 @@
     "q": "bun run index.ts",
     "start": "bun index.ts",
     "dev": "bun --watch index.ts",
+    "test": "bun test",
     "docker_build": "docker build --pull -t $npm_package_name .",
     "docker_run": "docker run --env-file .env -d $npm_package_name --name $npm_package_name"
   },
@@ -19,6 +20,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
     "@octokit/oauth-methods": "^6.0.0",
     "@sentry/bun": "^9.27.0",
     "body-parser": "^2.2.0",

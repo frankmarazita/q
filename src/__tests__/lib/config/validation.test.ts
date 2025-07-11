@@ -39,6 +39,7 @@ describe("validateConfig", () => {
         },
       },
       promptDirectory: "/path/to/prompts",
+      defaultPrompt: "helpful-assistant",
     };
 
     const result = validateConfig(config);
@@ -48,6 +49,7 @@ describe("validateConfig", () => {
       expect(result.data.token).toBe("test-token");
       expect(result.data.copilotToken?.token).toBe("copilot-token");
       expect(result.data.promptDirectory).toBe("/path/to/prompts");
+      expect(result.data.defaultPrompt).toBe("helpful-assistant");
     }
   });
 
@@ -68,6 +70,38 @@ describe("validateConfig", () => {
     expect(result.status).toBe("error");
     if (result.status === "error") {
       expect(typeof result.message).toBe("string");
+    }
+  });
+
+  it("should validate config with defaultPrompt only", () => {
+    const config = {
+      token: "test-token",
+      defaultPrompt: "coding-assistant",
+    };
+
+    const result = validateConfig(config);
+
+    expect(result.status).toBe("success");
+    if (result.status === "success") {
+      expect(result.data.token).toBe("test-token");
+      expect(result.data.defaultPrompt).toBe("coding-assistant");
+      expect(result.data.promptDirectory).toBeUndefined();
+    }
+  });
+
+  it("should validate config without defaultPrompt", () => {
+    const config = {
+      token: "test-token",
+      promptDirectory: "/path/to/prompts",
+    };
+
+    const result = validateConfig(config);
+
+    expect(result.status).toBe("success");
+    if (result.status === "success") {
+      expect(result.data.token).toBe("test-token");
+      expect(result.data.promptDirectory).toBe("/path/to/prompts");
+      expect(result.data.defaultPrompt).toBeUndefined();
     }
   });
 });

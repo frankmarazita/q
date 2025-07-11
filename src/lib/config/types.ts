@@ -13,6 +13,7 @@ export const zConfig = z.object({
   copilotToken: zCopilotToken.optional(),
   model: zModel.optional(),
   promptDirectory: z.string().optional(),
+  defaultPrompt: z.string().optional(),
 });
 
 export type Config = z.infer<typeof zConfig>;

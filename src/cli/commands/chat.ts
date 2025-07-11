@@ -48,6 +48,14 @@ async function handleChatCommand(
     const promptText = await loadPromptFile(options.promptFile, context);
     if (!promptText) return;
     prompt = promptText;
+  } else if (context.config.defaultPrompt) {
+    const promptText = await loadPromptFile(
+      context.config.defaultPrompt,
+      context
+    );
+    if (promptText) {
+      prompt = promptText;
+    }
   }
 
   if (!input) {

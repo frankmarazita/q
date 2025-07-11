@@ -11,11 +11,11 @@ export const zModel = z.object({
       max_prompt_tokens: z.number(),
     }),
     supports: z.object({
-      parallel_tool_calls: z.boolean(),
       streaming: z.boolean(),
-      structured_outputs: z.boolean(),
-      tool_calls: z.boolean(),
       vision: z.boolean(),
+      parallel_tool_calls: z.boolean().optional(),
+      structured_outputs: z.boolean().optional(),
+      tool_calls: z.boolean().optional(),
     }),
   }),
 });

@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import type { CommandContext } from "./types";
 import { readdir } from "node:fs/promises";
-import { updateConfig } from "../../services/config";
+import { updateConfig, loadConfig } from "../../services/config";
 
 export function register(program: Command, context: CommandContext): void {
   program
@@ -68,5 +68,81 @@ export function register(program: Command, context: CommandContext): void {
       }));
 
       console.table(formattedPrompts, ["name", "file"]);
+    });
+
+  program
+    .command("set-prompt")
+    .description("set the default prompt file")
+    .argument(
+      "<prompt-file>",
+      "the default prompt file name (without .md extension)"
+    )
+    .action(async (promptFile) => {
+      if (!context.config.promptDirectory) {
+        console.error(
+          "No prompt directory configured. Please set it with set-prompt-dir first."
+        );
+        return;
+      }
+
+      const file = Bun.file(
+        `${context.config.promptDirectory}/${promptFile}.md`
+      );
+      if (!(await file.exists())) {
+        console.error(
+          `Prompt file "${promptFile}.md" not found in ${context.config.promptDirectory}`
+        );
+        return;
+      }
+
+      await updateConfig({ defaultPrompt: promptFile });
+      console.log(`Default prompt set to: ${promptFile}`);
+    });
+
+  program
+    .command("remove-prompt")
+    .description("remove the default prompt file")
+    .action(async () => {
+      const currentConfig = await loadConfig();
+      if (!currentConfig.defaultPrompt) {
+        console.log("No default prompt set.");
+        return;
+      }
+
+      await updateConfig({ defaultPrompt: undefined });
+      console.log("Default prompt removed.");
+    });
+
+  program
+    .command("prompt")
+    .description("view the current default prompt")
+    .option("-v, --verbose", "show the content of the default prompt file")
+    .action(async (options) => {
+      const currentConfig = await loadConfig();
+      if (currentConfig.defaultPrompt) {
+        console.log(
+          `Current default prompt file: ${currentConfig.defaultPrompt}`
+        );
+
+        if (!options.verbose) return;
+
+        if (currentConfig.promptDirectory) {
+          const file = Bun.file(
+            `${currentConfig.promptDirectory}/${currentConfig.defaultPrompt}.md`
+          );
+          if (await file.exists()) {
+            const content = await file.text();
+            console.log(`\nContent:\n${content}`);
+          } else {
+            console.log(
+              `\nWarning: Prompt file "${currentConfig.defaultPrompt}.md" not found in ${currentConfig.promptDirectory}`
+            );
+          }
+        } else {
+          console.log("\nWarning: No prompt directory configured.");
+        }
+      } else {
+        console.log("No default prompt set.");
+      }
     });
 }

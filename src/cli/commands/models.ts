@@ -3,7 +3,7 @@ import type { CommandContext } from "./types";
 import { models } from "../../services/models";
 import { renderModelsTable } from "../rendering/tables";
 
-export function register(program: Command, context: CommandContext): void {
+export function register(program: Command, _context: CommandContext): void {
   program
     .command("models")
     .description("list the models")

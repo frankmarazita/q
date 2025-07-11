@@ -9,7 +9,7 @@ function processError(error: string): never {
 
 function processApiError(res: Response, message?: string) {
   let error = `${res.status} ${res.statusText}`;
-  message && (error = `${message}: ${error}`);
+  if (message) error = `${message}: ${error}`;
   return processError(error);
 }
 

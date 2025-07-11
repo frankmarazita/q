@@ -16,7 +16,7 @@ describe("user command", () => {
     register(program, mockContext);
 
     const commands = program.commands;
-    expect(commands.some(cmd => cmd.name() === "user")).toBe(true);
+    expect(commands.some((cmd) => cmd.name() === "user")).toBe(true);
   });
 
   it("should have correct command description and alias", () => {
@@ -28,7 +28,7 @@ describe("user command", () => {
 
     register(program, mockContext);
 
-    const userCmd = program.commands.find(cmd => cmd.name() === "user");
+    const userCmd = program.commands.find((cmd) => cmd.name() === "user");
     expect(userCmd?.description()).toBe("view user info");
     expect(userCmd?.alias()).toBe("u");
   });

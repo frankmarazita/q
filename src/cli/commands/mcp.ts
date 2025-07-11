@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import type { CommandContext } from "./types";
 
-export function register(program: Command, context: CommandContext): void {
+export function register(program: Command, _context: CommandContext): void {
   program
     .command("mcp-servers")
     .description("list the available MCP servers")

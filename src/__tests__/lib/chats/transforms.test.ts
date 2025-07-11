@@ -1,8 +1,8 @@
 import { describe, it, expect } from "bun:test";
-import { 
-  parseRawChat, 
-  createChatSummary, 
-  createChatSummaries
+import {
+  parseRawChat,
+  createChatSummary,
+  createChatSummaries,
 } from "../../../lib/chats/transforms";
 import type { RawChat } from "../../../lib/chats/types";
 
@@ -42,7 +42,8 @@ describe("createChatSummary", () => {
   });
 
   it("should truncate long messages", () => {
-    const longMessage = "This is a very long message that should be truncated to 20 characters";
+    const longMessage =
+      "This is a very long message that should be truncated to 20 characters";
     const rawChat: RawChat = {
       id: "chat-1",
       data: `{"messages":[{"role":"system","content":"System"},{"role":"user","content":"${longMessage}"}]}`,
@@ -115,4 +116,3 @@ describe("createChatSummaries", () => {
     expect(result).toHaveLength(0);
   });
 });
-

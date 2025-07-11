@@ -5,7 +5,7 @@ describe("processStreamChunk", () => {
   it("should process content chunk", () => {
     const chunk = 'data: {"choices":[{"delta":{"content":"Hello"}}]}';
     const { events, newPartialJsonString } = processStreamChunk(chunk, "");
-    
+
     expect(events).toHaveLength(1);
     expect(events[0]?.type).toBe("content");
     expect(events[0]?.data).toBe("Hello");
@@ -13,9 +13,9 @@ describe("processStreamChunk", () => {
   });
 
   it("should handle DONE signal", () => {
-    const chunk = 'data: [DONE]';
+    const chunk = "data: [DONE]";
     const { events, newPartialJsonString } = processStreamChunk(chunk, "");
-    
+
     expect(events).toHaveLength(1);
     expect(events[0]?.type).toBe("done");
     expect(newPartialJsonString).toBe("");
@@ -24,7 +24,7 @@ describe("processStreamChunk", () => {
   it("should handle partial JSON", () => {
     const chunk = 'data: {"choices":[{"delta":{"content":"Hel';
     const { events, newPartialJsonString } = processStreamChunk(chunk, "");
-    
+
     expect(events).toHaveLength(0);
     expect(newPartialJsonString).toBe('{"choices":[{"delta":{"content":"Hel');
   });
@@ -32,8 +32,11 @@ describe("processStreamChunk", () => {
   it("should complete partial JSON from previous chunk", () => {
     const partialJsonString = '{"choices":[{"delta":{"content":"Hel';
     const chunk = 'lo"}}]}';
-    const { events, newPartialJsonString } = processStreamChunk(chunk, partialJsonString);
-    
+    const { events, newPartialJsonString } = processStreamChunk(
+      chunk,
+      partialJsonString
+    );
+
     expect(events).toHaveLength(1);
     expect(events[0]?.type).toBe("content");
     expect(events[0]?.data).toBe("Hello");
@@ -41,9 +44,10 @@ describe("processStreamChunk", () => {
   });
 
   it("should handle multiple lines in one chunk", () => {
-    const chunk = 'data: {"choices":[{"delta":{"content":"Hello"}}]}\n\ndata: {"choices":[{"delta":{"content":" world"}}]}';
-    const { events, newPartialJsonString } = processStreamChunk(chunk, "");
-    
+    const chunk =
+      'data: {"choices":[{"delta":{"content":"Hello"}}]}\n\ndata: {"choices":[{"delta":{"content":" world"}}]}';
+    const { events } = processStreamChunk(chunk, "");
+
     expect(events).toHaveLength(2);
     expect(events[0]?.type).toBe("content");
     expect(events[0]?.data).toBe("Hello");
@@ -52,9 +56,10 @@ describe("processStreamChunk", () => {
   });
 
   it("should handle tool call chunks", () => {
-    const chunk = 'data: {"choices":[{"delta":{"tool_calls":[{"type":"function","function":{"name":"test"}}]}}]}';
-    const { events, newPartialJsonString } = processStreamChunk(chunk, "");
-    
+    const chunk =
+      'data: {"choices":[{"delta":{"tool_calls":[{"type":"function","function":{"name":"test"}}]}}]}';
+    const { events } = processStreamChunk(chunk, "");
+
     expect(events).toHaveLength(1);
     expect(events[0]?.type).toBe("tool-call");
     expect((events[0]?.toolCall as any)?.type).toBe("function");
@@ -62,8 +67,8 @@ describe("processStreamChunk", () => {
 
   it("should handle chunks with whitespace", () => {
     const chunk = 'data: {"choices":[{"delta":{"content":"Hello"}}]}';
-    const { events, newPartialJsonString } = processStreamChunk(chunk, "");
-    
+    const { events } = processStreamChunk(chunk, "");
+
     expect(events).toHaveLength(1);
     expect(events[0]?.type).toBe("content");
     expect(events[0]?.data).toBe("Hello");

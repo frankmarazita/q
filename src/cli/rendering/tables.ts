@@ -8,7 +8,7 @@ export function displayChatSummaries(summaries: ChatSummary[]): void {
 
   console.table(summaries, [
     "id",
-    "message", 
+    "message",
     "created_at",
     "updated_at",
     "chat_length",
@@ -19,7 +19,7 @@ export function displayModels(models: any[]): void {
   console.table(models, [
     "id",
     "name",
-    "vendor", 
+    "vendor",
     "version",
     "parallel_tool_calls",
     "streaming",

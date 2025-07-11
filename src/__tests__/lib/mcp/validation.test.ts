@@ -34,7 +34,9 @@ describe("validateMCPConfig", () => {
     if (result.status === "success") {
       expect(result.data.servers["test-server"]?.type).toBe("sse");
       if (result.data.servers["test-server"]?.type === "sse") {
-        expect(result.data.servers["test-server"].url).toBe("https://example.com/sse");
+        expect(result.data.servers["test-server"].url).toBe(
+          "https://example.com/sse"
+        );
       }
     }
   });

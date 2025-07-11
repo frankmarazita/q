@@ -5,7 +5,7 @@ describe("validateConfig", () => {
   it("should validate minimal config", () => {
     const config = { token: "test-token" };
     const result = validateConfig(config);
-    
+
     expect(result.status).toBe("success");
     if (result.status === "success") {
       expect(result.data.token).toBe("test-token");
@@ -40,9 +40,9 @@ describe("validateConfig", () => {
       },
       promptDirectory: "/path/to/prompts",
     };
-    
+
     const result = validateConfig(config);
-    
+
     expect(result.status).toBe("success");
     if (result.status === "success") {
       expect(result.data.token).toBe("test-token");
@@ -54,7 +54,7 @@ describe("validateConfig", () => {
   it("should return error for invalid config", () => {
     const config = { invalidField: "value" };
     const result = validateConfig(config);
-    
+
     expect(result.status).toBe("error");
     if (result.status === "error") {
       expect(typeof result.message).toBe("string");
@@ -64,7 +64,7 @@ describe("validateConfig", () => {
   it("should return error for missing token", () => {
     const config = { copilotToken: { token: "test", expiresAt: 123 } };
     const result = validateConfig(config);
-    
+
     expect(result.status).toBe("error");
     if (result.status === "error") {
       expect(typeof result.message).toBe("string");

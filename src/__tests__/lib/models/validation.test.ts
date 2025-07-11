@@ -1,5 +1,8 @@
 import { describe, it, expect } from "bun:test";
-import { validateModelExists, validateConfigHasModel } from "../../../lib/models/validation";
+import {
+  validateModelExists,
+  validateConfigHasModel,
+} from "../../../lib/models/validation";
 import type { Model } from "../../../lib/models/types";
 
 describe("validateModelExists", () => {
@@ -11,7 +14,13 @@ describe("validateModelExists", () => {
       version: "1.0",
       capabilities: {
         limits: { max_output_tokens: 4096, max_prompt_tokens: 8192 },
-        supports: { parallel_tool_calls: true, streaming: true, structured_outputs: true, tool_calls: true, vision: true },
+        supports: {
+          parallel_tool_calls: true,
+          streaming: true,
+          structured_outputs: true,
+          tool_calls: true,
+          vision: true,
+        },
       },
     };
 
@@ -28,7 +37,9 @@ describe("validateModelExists", () => {
 
     expect(result.status).toBe("error");
     if (result.status === "error") {
-      expect(result.message).toBe('Model "non-existent-model" is not available.');
+      expect(result.message).toBe(
+        'Model "non-existent-model" is not available.'
+      );
     }
   });
 
@@ -37,7 +48,9 @@ describe("validateModelExists", () => {
 
     expect(result.status).toBe("error");
     if (result.status === "error") {
-      expect(result.message).toBe('Model "specific-model-name" is not available.');
+      expect(result.message).toBe(
+        'Model "specific-model-name" is not available.'
+      );
     }
   });
 });
@@ -51,7 +64,13 @@ describe("validateConfigHasModel", () => {
       version: "1.0",
       capabilities: {
         limits: { max_output_tokens: 4096, max_prompt_tokens: 8192 },
-        supports: { parallel_tool_calls: true, streaming: true, structured_outputs: true, tool_calls: true, vision: true },
+        supports: {
+          parallel_tool_calls: true,
+          streaming: true,
+          structured_outputs: true,
+          tool_calls: true,
+          vision: true,
+        },
       },
     };
 
@@ -74,4 +93,3 @@ describe("validateConfigHasModel", () => {
     }
   });
 });
-

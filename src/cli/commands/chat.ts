@@ -70,7 +70,7 @@ async function handleChatCommand(
 
   if (clients) {
     const clientsTools = await Promise.all(
-      Object.entries(clients).map(async ([name, { client, tools }]) => {
+      Object.entries(clients).map(async ([, { client }]) => {
         const clientTools = await client.listTools();
         return {
           client,

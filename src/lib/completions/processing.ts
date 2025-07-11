@@ -103,7 +103,9 @@ export async function processCompletionStream(
 
     for (const toolCallsArgsStrItem of toolCallsArgsStr) {
       const argsResult = parseToolCallArguments(toolCallsArgsStrItem);
-      toolCallsArgs.push(argsResult.status === "success" ? argsResult.data : undefined);
+      toolCallsArgs.push(
+        argsResult.status === "success" ? argsResult.data : undefined
+      );
     }
 
     return {

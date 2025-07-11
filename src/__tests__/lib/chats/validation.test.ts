@@ -1,9 +1,6 @@
 import { describe, it, expect } from "bun:test";
-import { 
-  validateChatExists
-} from "../../../lib/chats/validation";
+import { validateChatExists } from "../../../lib/chats/validation";
 import type { RawChat } from "../../../lib/chats/types";
-
 
 describe("validateChatExists", () => {
   it("should validate existing chat", () => {
@@ -31,4 +28,3 @@ describe("validateChatExists", () => {
     }
   });
 });
-

@@ -43,7 +43,7 @@ async function createChat(data: ChatData): Promise<Res<string>> {
   try {
     const chatId = await db.insertChat(data);
     return successRes(chatId);
-  } catch (error) {
+  } catch (_error) {
     return errorRes("Failed to create chat");
   }
 }
@@ -59,7 +59,7 @@ async function deleteChat(chatId: string): Promise<Res<void>> {
   try {
     await db.deleteChat(chatId);
     return successRes(undefined);
-  } catch (error) {
+  } catch (_error) {
     return errorRes("Failed to delete chat");
   }
 }
@@ -81,7 +81,7 @@ async function addMessage(
   try {
     await db.updateChat(chatId, updatedChatData);
     return successRes(updatedChatData.messages);
-  } catch (error) {
+  } catch (_error) {
     return errorRes("Failed to add message to chat");
   }
 }

@@ -16,7 +16,7 @@ describe("chats command", () => {
     register(program, mockContext);
 
     const commands = program.commands;
-    expect(commands.some(cmd => cmd.name() === "chats")).toBe(true);
+    expect(commands.some((cmd) => cmd.name() === "chats")).toBe(true);
   });
 
   it("should have correct command description", () => {
@@ -28,7 +28,7 @@ describe("chats command", () => {
 
     register(program, mockContext);
 
-    const chatsCmd = program.commands.find(cmd => cmd.name() === "chats");
+    const chatsCmd = program.commands.find((cmd) => cmd.name() === "chats");
     expect(chatsCmd?.description()).toBe("list the chats");
   });
 
@@ -41,9 +41,9 @@ describe("chats command", () => {
 
     register(program, mockContext);
 
-    const chatsCmd = program.commands.find(cmd => cmd.name() === "chats");
+    const chatsCmd = program.commands.find((cmd) => cmd.name() === "chats");
     const options = chatsCmd?.options || [];
-    expect(options.some(opt => opt.short === "-D")).toBe(true);
-    expect(options.some(opt => opt.long === "--delete")).toBe(true);
+    expect(options.some((opt) => opt.short === "-D")).toBe(true);
+    expect(options.some((opt) => opt.long === "--delete")).toBe(true);
   });
 });

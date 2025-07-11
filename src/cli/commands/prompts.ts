@@ -14,7 +14,7 @@ export function register(program: Command, context: CommandContext): void {
       try {
         await readdir(directory);
         exists = true;
-      } catch (err) {
+      } catch (_err) {
         exists = false;
       }
 
@@ -33,7 +33,9 @@ export function register(program: Command, context: CommandContext): void {
     .description("view the current prompt directory")
     .action(async () => {
       if (context.config.promptDirectory) {
-        console.log(`Current prompt directory: ${context.config.promptDirectory}`);
+        console.log(
+          `Current prompt directory: ${context.config.promptDirectory}`
+        );
       } else {
         console.log("No prompt directory set.");
       }

@@ -1,15 +1,11 @@
 import { describe, it, expect } from "bun:test";
-import { 
-  addMessageToChat
-} from "../../../lib/chats/operations";
+import { addMessageToChat } from "../../../lib/chats/operations";
 import type { ChatData, Message } from "../../../lib/chats/types";
 
 describe("addMessageToChat", () => {
   it("should add message to chat without mutating original", () => {
     const originalChat: ChatData = {
-      messages: [
-        { role: "user", content: "Hello" },
-      ],
+      messages: [{ role: "user", content: "Hello" }],
     };
 
     const newMessage: Message = {
@@ -25,4 +21,3 @@ describe("addMessageToChat", () => {
     expect(originalChat.messages).toHaveLength(1);
   });
 });
-

@@ -1,5 +1,8 @@
 import { describe, it, expect } from "bun:test";
-import { transformModel, transformModels } from "../../../lib/models/transforms";
+import {
+  transformModel,
+  transformModels,
+} from "../../../lib/models/transforms";
 import type { Model } from "../../../lib/models/types";
 
 describe("transformModel", () => {
@@ -82,7 +85,13 @@ describe("transformModels", () => {
         version: "1.0",
         capabilities: {
           limits: { max_output_tokens: 1000, max_prompt_tokens: 2000 },
-          supports: { parallel_tool_calls: true, streaming: true, structured_outputs: false, tool_calls: true, vision: false },
+          supports: {
+            parallel_tool_calls: true,
+            streaming: true,
+            structured_outputs: false,
+            tool_calls: true,
+            vision: false,
+          },
         },
       },
       {
@@ -92,7 +101,13 @@ describe("transformModels", () => {
         version: "2.0",
         capabilities: {
           limits: { max_output_tokens: 2000, max_prompt_tokens: 4000 },
-          supports: { parallel_tool_calls: false, streaming: false, structured_outputs: true, tool_calls: false, vision: true },
+          supports: {
+            parallel_tool_calls: false,
+            streaming: false,
+            structured_outputs: true,
+            tool_calls: false,
+            vision: true,
+          },
         },
       },
     ];

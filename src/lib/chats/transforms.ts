@@ -10,12 +10,13 @@ export function parseRawChat(rawChat: RawChat): ParsedChat {
 export function createChatSummary(rawChat: RawChat): ChatSummary {
   const chatData = JSON.parse(rawChat.data) as ChatData;
   const messages = chatData.messages;
-  
+
   // Get preview from first user message (index 1, after system message)
   const previewMessage = messages[1]?.content || messages[0]?.content || "";
-  const preview = previewMessage.length > 20 
-    ? previewMessage.slice(0, 20) + "..."
-    : previewMessage;
+  const preview =
+    previewMessage.length > 20
+      ? previewMessage.slice(0, 20) + "..."
+      : previewMessage;
 
   return {
     id: rawChat.id,
@@ -29,4 +30,3 @@ export function createChatSummary(rawChat: RawChat): ChatSummary {
 export function createChatSummaries(rawChats: RawChat[]): ChatSummary[] {
   return rawChats.map(createChatSummary);
 }
-

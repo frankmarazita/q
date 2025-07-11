@@ -18,15 +18,15 @@ beforeEach(() => {
   logOutput = [];
   errorOutput = [];
   tableOutput = [];
-  
+
   console.log = (...args: any[]) => {
-    logOutput.push(args.join(' '));
+    logOutput.push(args.join(" "));
   };
-  
+
   console.error = (...args: any[]) => {
-    errorOutput.push(args.join(' '));
+    errorOutput.push(args.join(" "));
   };
-  
+
   console.table = (data: any, columns?: string[]) => {
     tableOutput.push({ data, columns });
   };
@@ -49,9 +49,9 @@ describe("models command", () => {
     register(program, mockContext);
 
     const commands = program.commands;
-    expect(commands.some(cmd => cmd.name() === "models")).toBe(true);
-    expect(commands.some(cmd => cmd.name() === "set-model")).toBe(true);
-    expect(commands.some(cmd => cmd.name() === "model")).toBe(true);
+    expect(commands.some((cmd) => cmd.name() === "models")).toBe(true);
+    expect(commands.some((cmd) => cmd.name() === "set-model")).toBe(true);
+    expect(commands.some((cmd) => cmd.name() === "model")).toBe(true);
   });
 
   it("should have correct command descriptions", () => {
@@ -63,9 +63,11 @@ describe("models command", () => {
 
     register(program, mockContext);
 
-    const modelsCmd = program.commands.find(cmd => cmd.name() === "models");
-    const setModelCmd = program.commands.find(cmd => cmd.name() === "set-model");
-    const modelCmd = program.commands.find(cmd => cmd.name() === "model");
+    const modelsCmd = program.commands.find((cmd) => cmd.name() === "models");
+    const setModelCmd = program.commands.find(
+      (cmd) => cmd.name() === "set-model"
+    );
+    const modelCmd = program.commands.find((cmd) => cmd.name() === "model");
 
     expect(modelsCmd?.description()).toBe("list the models");
     expect(setModelCmd?.description()).toBe("set the default model");
@@ -81,7 +83,7 @@ describe("models command", () => {
 
     register(program, mockContext);
 
-    const modelCmd = program.commands.find(cmd => cmd.name() === "model");
+    const modelCmd = program.commands.find((cmd) => cmd.name() === "model");
     expect(modelCmd?.alias()).toBe("m");
   });
 });

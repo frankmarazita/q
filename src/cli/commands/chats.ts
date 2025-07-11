@@ -2,7 +2,7 @@ import type { Command } from "commander";
 import type { CommandContext } from "./types";
 import { chats } from "../../services/chats";
 
-export function register(program: Command, context: CommandContext): void {
+export function register(program: Command, _context: CommandContext): void {
   program
     .command("chats")
     .description("list the chats")

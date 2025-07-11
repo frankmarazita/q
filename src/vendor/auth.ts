@@ -48,7 +48,7 @@ export async function authenticate() {
             await saveConfig({ token: authentication.token });
             resolve();
           }
-        } catch (error) {
+        } catch (_error) {
           setTimeout(pollForToken, 5000); // Retry every 5 seconds
         }
       };

@@ -28,7 +28,9 @@ export async function createCLI(
         cli.parse(["", "", "chat", stdin.trim()]);
       });
 
-      stdin.trim() === "" ? cli.help() : 0;
+      if (stdin.trim() === "") {
+        cli.help();
+      }
     });
 
   await setTimeout(0).then(() => void 0);

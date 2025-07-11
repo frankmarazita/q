@@ -30,6 +30,3 @@ export function createChatSummaries(rawChats: RawChat[]): ChatSummary[] {
   return rawChats.map(createChatSummary);
 }
 
-export function serializeChatData(chatData: ChatData): string {
-  return JSON.stringify(chatData);
-}

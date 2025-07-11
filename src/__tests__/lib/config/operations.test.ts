@@ -3,9 +3,6 @@ import {
   mergeConfigUpdates,
   createDefaultConfig,
   serializeConfig,
-  isCopilotTokenExpired,
-  hasValidToken,
-  hasValidCopilotToken,
 } from "../../../lib/config/operations";
 import type { Config, ConfigUpdate } from "../../../lib/config/types";
 
@@ -81,92 +78,3 @@ describe("serializeConfig", () => {
   });
 });
 
-describe("isCopilotTokenExpired", () => {
-  it("should return true when no copilot token", () => {
-    const config: Config = { token: "test" };
-    const result = isCopilotTokenExpired(config);
-    
-    expect(result).toBe(true);
-  });
-
-  it("should return true when token is expired", () => {
-    const config: Config = {
-      token: "test",
-      copilotToken: {
-        token: "copilot-token",
-        expiresAt: Date.now() - 1000, // Expired 1 second ago
-      },
-    };
-    
-    const result = isCopilotTokenExpired(config);
-    
-    expect(result).toBe(true);
-  });
-
-  it("should return false when token is not expired", () => {
-    const config: Config = {
-      token: "test",
-      copilotToken: {
-        token: "copilot-token",
-        expiresAt: Date.now() + 1000, // Expires in 1 second
-      },
-    };
-    
-    const result = isCopilotTokenExpired(config);
-    
-    expect(result).toBe(false);
-  });
-});
-
-describe("hasValidToken", () => {
-  it("should return true for non-empty token", () => {
-    const config: Config = { token: "test-token" };
-    const result = hasValidToken(config);
-    
-    expect(result).toBe(true);
-  });
-
-  it("should return false for empty token", () => {
-    const config: Config = { token: "" };
-    const result = hasValidToken(config);
-    
-    expect(result).toBe(false);
-  });
-});
-
-describe("hasValidCopilotToken", () => {
-  it("should return false when no copilot token", () => {
-    const config: Config = { token: "test" };
-    const result = hasValidCopilotToken(config);
-    
-    expect(result).toBe(false);
-  });
-
-  it("should return false when copilot token is expired", () => {
-    const config: Config = {
-      token: "test",
-      copilotToken: {
-        token: "copilot-token",
-        expiresAt: Date.now() - 1000,
-      },
-    };
-    
-    const result = hasValidCopilotToken(config);
-    
-    expect(result).toBe(false);
-  });
-
-  it("should return true when copilot token is valid", () => {
-    const config: Config = {
-      token: "test",
-      copilotToken: {
-        token: "copilot-token",
-        expiresAt: Date.now() + 1000,
-      },
-    };
-    
-    const result = hasValidCopilotToken(config);
-    
-    expect(result).toBe(true);
-  });
-});

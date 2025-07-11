@@ -18,14 +18,6 @@ export function validateConfig(data: unknown): Config | null {
   return result.success ? result.data as Config : null;
 }
 
-export function isValidConfigJson(jsonString: string): boolean {
-  try {
-    const parsed = JSON.parse(jsonString);
-    return validateConfig(parsed) !== null;
-  } catch {
-    return false;
-  }
-}
 
 export function getConfigValidationError(data: unknown): string | null {
   const result = configSchema.safeParse(data);

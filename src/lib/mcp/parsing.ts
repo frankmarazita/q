@@ -11,18 +11,6 @@ export function parseMCPConfigText(text: string): MCPConfig | null {
   }
 }
 
-export function parseMCPConfigJson(jsonString: string): MCPConfig | null {
-  try {
-    const parsed = JSON.parse(jsonString);
-    return validateMCPConfig(parsed);
-  } catch {
-    return null;
-  }
-}
-
-export function serializeMCPConfig(config: MCPConfig): string {
-  return JSON.stringify(config, null, 2);
-}
 
 export function getMCPConfigParseError(text: string): string | null {
   try {

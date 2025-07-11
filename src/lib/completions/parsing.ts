@@ -28,14 +28,6 @@ export function extractToolCallsFromChunk(chunk: CompletionChunk): Array<any> {
   return [];
 }
 
-export function extractToolCallArgsFromChunk(chunk: CompletionChunk): Array<any> {
-  if (chunk.choices.length && chunk.choices[0]?.delta.tool_calls) {
-    return chunk.choices[0].delta.tool_calls.filter(
-      (toolCall: any) => toolCall.type !== "function"
-    );
-  }
-  return [];
-}
 
 export function parseToolCallArguments(argsString: string): any {
   try {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { validateConfig, isValidConfigJson, getConfigValidationError } from "../../../lib/config/validation";
+import { validateConfig, getConfigValidationError } from "../../../lib/config/validation";
 
 describe("validateConfig", () => {
   it("should validate minimal config", () => {
@@ -44,28 +44,6 @@ describe("validateConfig", () => {
   });
 });
 
-describe("isValidConfigJson", () => {
-  it("should return true for valid JSON config", () => {
-    const jsonString = '{"token": "test-token"}';
-    const result = isValidConfigJson(jsonString);
-    
-    expect(result).toBe(true);
-  });
-
-  it("should return false for invalid JSON", () => {
-    const jsonString = '{"token": "test-token"'; // Missing closing brace
-    const result = isValidConfigJson(jsonString);
-    
-    expect(result).toBe(false);
-  });
-
-  it("should return false for valid JSON but invalid config", () => {
-    const jsonString = '{"invalidField": "value"}';
-    const result = isValidConfigJson(jsonString);
-    
-    expect(result).toBe(false);
-  });
-});
 
 describe("getConfigValidationError", () => {
   it("should return null for valid config", () => {

@@ -9,13 +9,3 @@ export function findModelByIdOrName(models: Model[], target: string): Model | un
   return undefined;
 }
 
-export function findModelsByVendor(models: Model[], vendor: string): Model[] {
-  return models.filter(model => model.vendor === vendor);
-}
-
-export function findModelsWithCapability(
-  models: Model[], 
-  capability: keyof Model['capabilities']['supports']
-): Model[] {
-  return models.filter(model => model.capabilities.supports[capability]);
-}

@@ -2,10 +2,9 @@ import { describe, it, expect } from "bun:test";
 import { 
   parseRawChat, 
   createChatSummary, 
-  createChatSummaries, 
-  serializeChatData 
+  createChatSummaries
 } from "../../../lib/chats/transforms";
-import type { RawChat, ChatData } from "../../../lib/chats/types";
+import type { RawChat } from "../../../lib/chats/types";
 
 describe("parseRawChat", () => {
   it("should parse raw chat data correctly", () => {
@@ -117,17 +116,3 @@ describe("createChatSummaries", () => {
   });
 });
 
-describe("serializeChatData", () => {
-  it("should serialize chat data to JSON string", () => {
-    const chatData: ChatData = {
-      messages: [
-        { role: "user", content: "Hello" },
-        { role: "assistant", content: "Hi there!" },
-      ],
-    };
-
-    const result = serializeChatData(chatData);
-
-    expect(result).toBe('{"messages":[{"role":"user","content":"Hello"},{"role":"assistant","content":"Hi there!"}]}');
-  });
-});

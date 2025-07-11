@@ -1,7 +1,6 @@
 import { describe, it, expect } from "bun:test";
 import { 
-  parseMCPConfigText, 
-  getMCPConfigParseError 
+  parseMCPConfigText
 } from "../../../lib/mcp/parsing";
 
 describe("parseMCPConfigText", () => {
@@ -9,8 +8,10 @@ describe("parseMCPConfigText", () => {
     const text = '{"servers": {}}';
     const result = parseMCPConfigText(text);
     
-    expect(result).not.toBeNull();
-    expect(result?.servers).toEqual({});
+    expect(result.status).toBe("success");
+    if (result.status === "success") {
+      expect(result.data.servers).toEqual({});
+    }
   });
 
   it("should parse valid JSONC text with comments", () => {
@@ -26,47 +27,29 @@ describe("parseMCPConfigText", () => {
     
     const result = parseMCPConfigText(text);
     
-    expect(result).not.toBeNull();
-    expect(result?.servers["test-server"]?.type).toBe("sse");
+    expect(result.status).toBe("success");
+    if (result.status === "success") {
+      expect(result.data.servers["test-server"]?.type).toBe("sse");
+    }
   });
 
-  it("should return null for invalid JSON", () => {
+  it("should return error for invalid JSON", () => {
     const text = '{"servers": {}'; // Missing closing brace
     const result = parseMCPConfigText(text);
     
-    expect(result).toBeNull();
+    expect(result.status).toBe("error");
+    if (result.status === "error") {
+      expect(typeof result.message).toBe("string");
+    }
   });
 
-  it("should return null for valid JSON but invalid config", () => {
+  it("should return error for valid JSON but invalid config", () => {
     const text = '{"invalidField": "value"}';
     const result = parseMCPConfigText(text);
     
-    expect(result).toBeNull();
-  });
-});
-
-
-describe("getMCPConfigParseError", () => {
-  it("should return null for valid config text", () => {
-    const text = '{"servers": {}}';
-    const result = getMCPConfigParseError(text);
-    
-    expect(result).toBeNull();
-  });
-
-  it("should return error message for invalid JSON", () => {
-    const text = '{"servers": {}'; // Missing closing brace
-    const result = getMCPConfigParseError(text);
-    
-    expect(result).not.toBeNull();
-    expect(typeof result).toBe("string");
-  });
-
-  it("should return error message for valid JSON but invalid config", () => {
-    const text = '{"invalidField": "value"}';
-    const result = getMCPConfigParseError(text);
-    
-    expect(result).not.toBeNull();
-    expect(typeof result).toBe("string");
+    expect(result.status).toBe("error");
+    if (result.status === "error") {
+      expect(typeof result.message).toBe("string");
+    }
   });
 });

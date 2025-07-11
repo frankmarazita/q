@@ -1,10 +1,7 @@
 import os from "node:os";
 import path from "node:path";
 import type { Config, ConfigUpdate } from "../lib/config/types";
-import {
-  validateConfig,
-  getConfigValidationError,
-} from "../lib/config/validation";
+import { validateConfig } from "../lib/config/validation";
 import {
   mergeConfigUpdates,
   createDefaultConfig,
@@ -33,14 +30,13 @@ export async function loadConfig(): Promise<Config> {
 
   const text = await file.text();
   const parsed = JSON.parse(text);
-  const config = validateConfig(parsed);
+  const configResult = validateConfig(parsed);
 
-  if (!config) {
-    const error = getConfigValidationError(parsed);
-    throw new Error(`Invalid config file: ${error}`);
+  if (configResult.status === "error") {
+    throw new Error(`Invalid config file: ${configResult.message}`);
   }
 
-  return config;
+  return configResult.data;
 }
 
 export async function updateConfig(updates: ConfigUpdate): Promise<Config> {

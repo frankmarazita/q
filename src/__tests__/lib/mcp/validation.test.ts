@@ -9,8 +9,10 @@ describe("validateMCPConfig", () => {
 
     const result = validateMCPConfig(config);
 
-    expect(result).not.toBeNull();
-    expect(result?.servers).toEqual({});
+    expect(result.status).toBe("success");
+    if (result.status === "success") {
+      expect(result.data.servers).toEqual({});
+    }
   });
 
   it("should validate MCP config with SSE server", () => {
@@ -28,10 +30,12 @@ describe("validateMCPConfig", () => {
 
     const result = validateMCPConfig(config);
 
-    expect(result).not.toBeNull();
-    expect(result?.servers["test-server"]?.type).toBe("sse");
-    if (result?.servers["test-server"]?.type === "sse") {
-      expect(result.servers["test-server"].url).toBe("https://example.com/sse");
+    expect(result.status).toBe("success");
+    if (result.status === "success") {
+      expect(result.data.servers["test-server"]?.type).toBe("sse");
+      if (result.data.servers["test-server"]?.type === "sse") {
+        expect(result.data.servers["test-server"].url).toBe("https://example.com/sse");
+      }
     }
   });
 
@@ -47,8 +51,10 @@ describe("validateMCPConfig", () => {
 
     const result = validateMCPConfig(config);
 
-    expect(result).not.toBeNull();
-    expect(result?.servers["http-server"]?.type).toBe("http");
+    expect(result.status).toBe("success");
+    if (result.status === "success") {
+      expect(result.data.servers["http-server"]?.type).toBe("http");
+    }
   });
 
   it("should validate MCP config with stdio server", () => {
@@ -64,24 +70,29 @@ describe("validateMCPConfig", () => {
 
     const result = validateMCPConfig(config);
 
-    expect(result).not.toBeNull();
-    expect(result?.servers["stdio-server"]?.type).toBe("stdio");
-    if (result?.servers["stdio-server"]?.type === "stdio") {
-      expect(result.servers["stdio-server"].command).toBe("python");
+    expect(result.status).toBe("success");
+    if (result.status === "success") {
+      expect(result.data.servers["stdio-server"]?.type).toBe("stdio");
+      if (result.data.servers["stdio-server"]?.type === "stdio") {
+        expect(result.data.servers["stdio-server"].command).toBe("python");
+      }
     }
   });
 
-  it("should return null for invalid config", () => {
+  it("should return error for invalid config", () => {
     const config = {
       invalidField: "value",
     };
 
     const result = validateMCPConfig(config);
 
-    expect(result).toBeNull();
+    expect(result.status).toBe("error");
+    if (result.status === "error") {
+      expect(typeof result.message).toBe("string");
+    }
   });
 
-  it("should return null for config with invalid server", () => {
+  it("should return error for config with invalid server", () => {
     const config = {
       servers: {
         "invalid-server": {
@@ -93,6 +104,9 @@ describe("validateMCPConfig", () => {
 
     const result = validateMCPConfig(config);
 
-    expect(result).toBeNull();
+    expect(result.status).toBe("error");
+    if (result.status === "error") {
+      expect(typeof result.message).toBe("string");
+    }
   });
 });

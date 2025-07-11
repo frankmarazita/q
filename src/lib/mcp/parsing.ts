@@ -1,23 +1,18 @@
 import { parse } from "comment-json";
 import type { MCPConfig } from "./types";
+import type { Res } from "../common/types";
+import { createErrorResponse } from "../common/response";
 import { validateMCPConfig } from "./validation";
 
-export function parseMCPConfigText(text: string): MCPConfig | null {
+export function parseMCPConfigText(text: string): Res<MCPConfig> {
   try {
     const parsed = parse(text, null, true);
     return validateMCPConfig(parsed);
-  } catch {
-    return null;
-  }
-}
-
-
-export function getMCPConfigParseError(text: string): string | null {
-  try {
-    const parsed = parse(text, null, true);
-    const config = validateMCPConfig(parsed);
-    return config ? null : "Invalid MCP configuration format";
   } catch (error) {
-    return error instanceof Error ? error.message : "Failed to parse MCP configuration";
+    return createErrorResponse(
+      error instanceof Error
+        ? error.message
+        : "Failed to parse MCP configuration"
+    );
   }
 }

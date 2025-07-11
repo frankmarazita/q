@@ -1,10 +1,14 @@
 import type { CompletionChunk } from "./types";
+import type { Res } from "../common/types";
+import { createSuccessResponse, createErrorResponse } from "../common/response";
 
-export function parseCompletionChunk(jsonString: string): CompletionChunk | null {
+export function parseCompletionChunk(jsonString: string): Res<CompletionChunk> {
   try {
-    return JSON.parse(jsonString) as CompletionChunk;
+    return createSuccessResponse(JSON.parse(jsonString) as CompletionChunk);
   } catch (error) {
-    return null;
+    return createErrorResponse(
+      error instanceof Error ? error.message : "Failed to parse completion chunk"
+    );
   }
 }
 
@@ -12,11 +16,11 @@ export function isCompletionDone(jsonString: string): boolean {
   return jsonString === "[DONE]";
 }
 
-export function extractContentFromChunk(chunk: CompletionChunk): string | null {
+export function extractContentFromChunk(chunk: CompletionChunk): Res<string> {
   if (chunk.choices.length && chunk.choices[0]?.delta.content) {
-    return chunk.choices[0].delta.content;
+    return createSuccessResponse(chunk.choices[0].delta.content);
   }
-  return null;
+  return createErrorResponse("No content found in completion chunk");
 }
 
 export function extractToolCallsFromChunk(chunk: CompletionChunk): Array<any> {
@@ -29,10 +33,12 @@ export function extractToolCallsFromChunk(chunk: CompletionChunk): Array<any> {
 }
 
 
-export function parseToolCallArguments(argsString: string): any {
+export function parseToolCallArguments(argsString: string): Res<any> {
   try {
-    return JSON.parse(argsString);
+    return createSuccessResponse(JSON.parse(argsString));
   } catch (error) {
-    return undefined;
+    return createErrorResponse(
+      error instanceof Error ? error.message : "Failed to parse tool call arguments"
+    );
   }
 }

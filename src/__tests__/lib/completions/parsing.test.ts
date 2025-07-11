@@ -13,15 +13,20 @@ describe("parseCompletionChunk", () => {
     const jsonString = '{"choices":[{"delta":{"content":"Hello"}}]}';
     const result = parseCompletionChunk(jsonString);
     
-    expect(result).not.toBeNull();
-    expect(result?.choices[0]?.delta.content).toBe("Hello");
+    expect(result.status).toBe("success");
+    if (result.status === "success") {
+      expect(result.data.choices[0]?.delta.content).toBe("Hello");
+    }
   });
 
-  it("should return null for invalid JSON", () => {
+  it("should return error for invalid JSON", () => {
     const jsonString = '{"choices":[{"delta":{"content":"Hello"}'; // Missing closing brackets
     const result = parseCompletionChunk(jsonString);
     
-    expect(result).toBeNull();
+    expect(result.status).toBe("error");
+    if (result.status === "error") {
+      expect(typeof result.message).toBe("string");
+    }
   });
 });
 
@@ -47,10 +52,13 @@ describe("extractContentFromChunk", () => {
     };
 
     const result = extractContentFromChunk(chunk);
-    expect(result).toBe("Hello world");
+    expect(result.status).toBe("success");
+    if (result.status === "success") {
+      expect(result.data).toBe("Hello world");
+    }
   });
 
-  it("should return null when no content", () => {
+  it("should return error when no content", () => {
     const chunk: CompletionChunk = {
       choices: [{
         delta: {}
@@ -58,16 +66,22 @@ describe("extractContentFromChunk", () => {
     };
 
     const result = extractContentFromChunk(chunk);
-    expect(result).toBeNull();
+    expect(result.status).toBe("error");
+    if (result.status === "error") {
+      expect(typeof result.message).toBe("string");
+    }
   });
 
-  it("should return null when no choices", () => {
+  it("should return error when no choices", () => {
     const chunk: CompletionChunk = {
       choices: []
     };
 
     const result = extractContentFromChunk(chunk);
-    expect(result).toBeNull();
+    expect(result.status).toBe("error");
+    if (result.status === "error") {
+      expect(typeof result.message).toBe("string");
+    }
   });
 });
 
@@ -108,13 +122,19 @@ describe("parseToolCallArguments", () => {
     const argsString = '{"param1":"value1","param2":42}';
     const result = parseToolCallArguments(argsString);
     
-    expect(result).toEqual({ param1: "value1", param2: 42 });
+    expect(result.status).toBe("success");
+    if (result.status === "success") {
+      expect(result.data).toEqual({ param1: "value1", param2: 42 });
+    }
   });
 
-  it("should return undefined for invalid JSON", () => {
+  it("should return error for invalid JSON", () => {
     const argsString = '{"param1":"value1"'; // Invalid JSON
     const result = parseToolCallArguments(argsString);
     
-    expect(result).toBeUndefined();
+    expect(result.status).toBe("error");
+    if (result.status === "error") {
+      expect(typeof result.message).toBe("string");
+    }
   });
 });

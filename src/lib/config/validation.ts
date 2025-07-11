@@ -1,5 +1,7 @@
 import { z } from "zod";
 import type { Config } from "./types";
+import type { Res } from "../common/types";
+import { createSuccessResponse, createErrorResponse } from "../common/response";
 
 const copilotTokenSchema = z.object({
   token: z.string(),
@@ -13,13 +15,9 @@ const configSchema = z.object({
   promptDirectory: z.string().optional(),
 });
 
-export function validateConfig(data: unknown): Config | null {
+export function validateConfig(data: unknown): Res<Config> {
   const result = configSchema.safeParse(data);
-  return result.success ? result.data as Config : null;
-}
-
-
-export function getConfigValidationError(data: unknown): string | null {
-  const result = configSchema.safeParse(data);
-  return result.success ? null : result.error.format().toString();
+  return result.success
+    ? createSuccessResponse(result.data as Config)
+    : createErrorResponse(result.error.format().toString());
 }

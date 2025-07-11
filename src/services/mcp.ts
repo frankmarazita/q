@@ -2,7 +2,7 @@ import path from "path";
 import { CONFIG_FOLDER } from "./config";
 import type { Res } from "../types";
 import type { MCPConfig } from "../lib/mcp/types";
-import { parseMCPConfigText, getMCPConfigParseError } from "../lib/mcp/parsing";
+import { parseMCPConfigText } from "../lib/mcp/parsing";
 
 async function listServers(): Promise<Res<MCPConfig["servers"]>> {
   // Allow both JSON and JSONC formats for MCP configuration
@@ -23,11 +23,10 @@ async function listServers(): Promise<Res<MCPConfig["servers"]>> {
   }
 
   const text = await file.text();
-  const config = parseMCPConfigText(text);
+  const configResult = parseMCPConfigText(text);
 
-  if (!config) {
-    const error = getMCPConfigParseError(text);
-    console.error(`Invalid MCP configuration: ${error}`);
+  if (configResult.status === "error") {
+    console.error(`Invalid MCP configuration: ${configResult.message}`);
 
     return {
       status: "error",
@@ -37,7 +36,7 @@ async function listServers(): Promise<Res<MCPConfig["servers"]>> {
 
   return {
     status: "success",
-    data: config.servers,
+    data: configResult.data.servers,
   };
 }
 

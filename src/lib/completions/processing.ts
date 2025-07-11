@@ -34,18 +34,18 @@ export function processStreamChunk(
       break;
     }
 
-    const parsed = parseCompletionChunk(jsonString);
-    if (parsed) {
+    const parsedResult = parseCompletionChunk(jsonString);
+    if (parsedResult.status === "success") {
       currentPartialJsonString = "";
 
       // Extract content
-      const content = extractContentFromChunk(parsed);
-      if (content) {
-        events.push({ type: "content", data: content });
+      const contentResult = extractContentFromChunk(parsedResult.data);
+      if (contentResult.status === "success") {
+        events.push({ type: "content", data: contentResult.data });
       }
 
       // Extract tool calls
-      const toolCalls = extractToolCallsFromChunk(parsed);
+      const toolCalls = extractToolCallsFromChunk(parsedResult.data);
       for (const toolCall of toolCalls) {
         events.push({ type: "tool-call", toolCall });
       }
@@ -102,8 +102,8 @@ export async function processCompletionStream(
     const toolCallsArgs: (object | undefined)[] = [];
 
     for (const toolCallsArgsStrItem of toolCallsArgsStr) {
-      const args = parseToolCallArguments(toolCallsArgsStrItem);
-      toolCallsArgs.push(args);
+      const argsResult = parseToolCallArguments(toolCallsArgsStrItem);
+      toolCallsArgs.push(argsResult.status === "success" ? argsResult.data : undefined);
     }
 
     return {

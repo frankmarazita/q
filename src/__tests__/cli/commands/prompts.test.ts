@@ -26,24 +26,20 @@ describe("prompts commands", () => {
     api: {} as any,
   };
 
-  it("should register set-default-prompt command", () => {
+  it("should register set-prompt command", () => {
     const program = new Command();
     register(program, mockContext);
 
-    const command = program.commands.find(
-      (cmd) => cmd.name() === "set-default-prompt"
-    );
+    const command = program.commands.find((cmd) => cmd.name() === "set-prompt");
     expect(command).toBeDefined();
     expect(command?.description()).toBe("set the default prompt file");
   });
 
-  it("should register default-prompt command", () => {
+  it("should register prompt command", () => {
     const program = new Command();
     register(program, mockContext);
 
-    const command = program.commands.find(
-      (cmd) => cmd.name() === "default-prompt"
-    );
+    const command = program.commands.find((cmd) => cmd.name() === "prompt");
     expect(command).toBeDefined();
     expect(command?.description()).toBe("view the current default prompt");
   });

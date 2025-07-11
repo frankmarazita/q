@@ -50,6 +50,9 @@ describe("chat command", () => {
     expect(
       options.some((opt) => opt.short === "-i" && opt.long === "--interactive")
     ).toBe(true);
+    expect(
+      options.some((opt) => opt.short === "-c" && opt.long === "--continue")
+    ).toBe(true);
   });
 
   it("should be defined and registered", () => {

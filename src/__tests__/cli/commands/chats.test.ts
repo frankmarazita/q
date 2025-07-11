@@ -46,4 +46,30 @@ describe("chats command", () => {
     expect(options.some((opt) => opt.short === "-D")).toBe(true);
     expect(options.some((opt) => opt.long === "--delete")).toBe(true);
   });
+
+  it("should register load-chat command", () => {
+    const program = new Command();
+    const mockContext: CommandContext = {
+      config: {} as Config,
+      api: {} as API,
+    };
+
+    register(program, mockContext);
+
+    const loadChatCmd = program.commands.find(
+      (cmd) => cmd.name() === "load-chat"
+    );
+    expect(loadChatCmd).toBeDefined();
+    expect(loadChatCmd?.description()).toBe(
+      "select and continue a specific chat"
+    );
+
+    const options = loadChatCmd?.options || [];
+    expect(
+      options.some((opt) => opt.short === "-A" && opt.long === "--agent")
+    ).toBe(true);
+    expect(
+      options.some((opt) => opt.short === "-i" && opt.long === "--interactive")
+    ).toBe(true);
+  });
 });

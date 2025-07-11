@@ -2,13 +2,14 @@ import type { Command } from "commander";
 import type { CommandContext } from "./types";
 import { parseInput } from "../input/parser";
 import { chats } from "../../services/chats";
-import {
-  processChat,
-  addUserMessage,
-  processExistingChat,
-} from "../../services/chat";
-import { loadMCPClients, type MCPClientData } from "../mcp/client";
+import { processChat, addUserMessage } from "../../services/chat";
 import type { StreamEvent } from "../../lib/completions";
+import {
+  displayChatHistory,
+  setupMCPClients,
+  processAIResponse,
+  runChatLoop,
+} from "./shared/chat-utils";
 
 const onEvent = (event: StreamEvent) => {
   if (event.type === "content" && event.data) {
@@ -29,6 +30,7 @@ export function register(program: Command, context: CommandContext): void {
       "the prompt file to use for the chat from the prompt directory"
     )
     .option("-i, --interactive", "use interactive mode")
+    .option("-c, --continue", "continue the last chat")
     .action(async (input, options) => {
       await handleChatCommand(input, options, context);
     });
@@ -39,6 +41,11 @@ async function handleChatCommand(
   options: any,
   context: CommandContext
 ): Promise<void> {
+  // Handle continue option
+  if (options.continue) {
+    return await handleContinueChat(input, options, context);
+  }
+
   let prompt =
     "You are a helpful AI assistant in a CLI. Do whatever the user asks.";
 
@@ -63,38 +70,7 @@ async function handleChatCommand(
     process.stdout.write("\n");
   }
 
-  const tools: { function: any; type: string }[] = [];
-  const clients: Record<string, MCPClientData> | undefined = options.agent
-    ? await loadMCPClients("0.0.1")
-    : undefined;
-
-  if (clients) {
-    const clientsTools = await Promise.all(
-      Object.entries(clients).map(async ([, { client }]) => {
-        const clientTools = await client.listTools();
-        return {
-          client,
-          tools: clientTools,
-        };
-      })
-    );
-
-    for (const { tools: clientTools } of clientsTools) {
-      for (const tool of clientTools.tools) {
-        tools.push({
-          function: {
-            id: tool.id,
-            name: tool.name,
-            description: tool.description,
-            parameters: {
-              ...tool.inputSchema,
-            },
-          },
-          type: "function",
-        });
-      }
-    }
-  }
+  const { tools, clients } = await setupMCPClients(options.agent);
 
   const chatResult = await processChat({ input, prompt, tools }, onEvent);
 
@@ -165,7 +141,7 @@ async function handleChatCommand(
     process.exit(0);
   }
 
-  await runChatLoop(chatId, tools, clients, options, context);
+  await runChatLoop(chatId, tools, clients, options, context, onEvent);
 }
 
 async function loadPromptFile(
@@ -189,106 +165,80 @@ async function loadPromptFile(
   return await file.text();
 }
 
-async function runChatLoop(
-  chatId: string,
-  tools: { function: any; type: string }[],
-  clients: Record<string, MCPClientData> | undefined,
+async function handleContinueChat(
+  input: string,
   options: any,
-  _context: CommandContext
+  context: CommandContext
 ): Promise<void> {
-  let input: string;
-
-  while (true) {
-    if (!options.interactive) {
-      process.exit(0);
-    }
-
-    process.stdout.write("\n");
-
-    input = await parseInput();
-
-    const addMessageResult = await addUserMessage(chatId, input);
-    if (addMessageResult.status === "error") {
-      console.error(addMessageResult.message);
-      return;
-    }
-
-    process.stdout.write("\n");
-
-    // Process AI response (may include tool calls)
-    await processAIResponse(chatId, tools, clients, onEvent);
-  }
-}
-
-async function processAIResponse(
-  chatId: string,
-  tools: { function: any; type: string }[],
-  clients: Record<string, MCPClientData> | undefined,
-  onEvent: (event: StreamEvent) => void
-): Promise<void> {
-  const replyResult = await processExistingChat(chatId, tools, onEvent);
-
-  if (replyResult.status === "error") {
-    console.error(replyResult.message);
+  // Get the most recent chat
+  const chatsListResult = await chats.list();
+  if (chatsListResult.status === "error") {
+    console.error(chatsListResult.message);
     return;
   }
 
-  const reply = replyResult.data;
-
-  if (reply.type === "tool-calls") {
-    if (clients) {
-      await chats.addMessage(chatId, {
-        role: "assistant",
-        content: "",
-        tool_calls: reply.toolCalls.map((toolCall) => ({
-          id: toolCall.function.id,
-          function: {
-            name: toolCall.function.function.name,
-            arguments: JSON.stringify(toolCall.arguments, null, 2),
-          },
-          type: "function",
-        })),
-      });
-
-      const toolCallResponses: {
-        role: "tool";
-        content: string;
-        tool_call_id: string;
-      }[] = [];
-
-      for (const toolCall of reply.toolCalls) {
-        console.log(`Calling tool: ${toolCall.function.function.name}`);
-
-        const client = Object.entries(clients).find(([, { tools }]) =>
-          tools.includes(toolCall.function.function.name)
-        );
-
-        if (!client) {
-          console.error(
-            `No MCP client found for tool: ${toolCall.function.function.name}`
-          );
-          continue;
-        }
-
-        const res = await client[1].client.callTool({
-          name: toolCall.function.function.name,
-          arguments: toolCall.arguments,
-        });
-
-        toolCallResponses.push({
-          role: "tool",
-          content: (res.content as any)[0].text,
-          tool_call_id: toolCall.function.id,
-        });
-      }
-
-      for (const toolCallResponse of toolCallResponses) {
-        await chats.addMessage(chatId, toolCallResponse);
-      }
-
-      // Process AI response to tool results (this should be the final response)
-      await processAIResponse(chatId, tools, clients, onEvent);
-    }
+  const chatsList = chatsListResult.data;
+  if (chatsList.length === 0) {
+    console.log("No previous chats found. Starting a new chat instead.");
+    return await handleChatCommand(
+      input,
+      { ...options, continue: false },
+      context
+    );
   }
-  // If it's not a tool call, the AI has provided a final response and we're done
+
+  // Get the most recent chat (assuming list is ordered by created_at)
+  const latestChat = chatsList[chatsList.length - 1];
+  if (!latestChat) {
+    console.log("No previous chats found. Starting a new chat instead.");
+    return await handleChatCommand(
+      input,
+      { ...options, continue: false },
+      context
+    );
+  }
+
+  const chatId = latestChat.id;
+
+  console.log(
+    `Continuing chat: ${latestChat.message} (${latestChat.created_at})`
+  );
+
+  // Get the full chat to display history
+  const chatResult = await chats.get(chatId);
+  if (chatResult.status === "error") {
+    console.error(chatResult.message);
+    return;
+  }
+
+  const chat = chatResult.data;
+
+  displayChatHistory("", chat.data.messages);
+
+  // If no input provided, get it from user and make interactive
+  const wasInputProvided = !!input;
+  if (!input) {
+    input = await parseInput();
+    process.stdout.write("\n");
+  }
+
+  // Add user message to the chat
+  const addMessageResult = await addUserMessage(chatId, input);
+  if (addMessageResult.status === "error") {
+    console.error(addMessageResult.message);
+    return;
+  }
+
+  // Set up tools if agent mode is enabled
+  const { tools, clients } = await setupMCPClients(options.agent);
+
+  // Process the continued chat
+  await processAIResponse(chatId, tools, clients, onEvent);
+
+  // Continue with interactive mode when no input was initially provided
+  if (!wasInputProvided) {
+    // Make continued chats interactive by default when no input provided
+    options.interactive = true;
+  }
+  await runChatLoop(chatId, tools, clients, options, context, onEvent);
 }

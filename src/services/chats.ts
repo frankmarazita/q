@@ -7,20 +7,17 @@ import {
 } from "../lib/chats";
 import type { ChatData, Message, ChatSummary } from "../lib/chats/types";
 import type { Res } from "../lib/common/types";
-import {
-  createSuccessResponse,
-  createErrorResponse,
-} from "../lib/common/response";
+import { successRes, errorRes } from "../lib/common/response";
 
 async function listChats(): Promise<Res<ChatSummary[]>> {
   const rawChats = await db.getAllChats();
 
   if (rawChats.length === 0) {
-    return createSuccessResponse([]);
+    return successRes([]);
   }
 
   const summaries = createChatSummaries(rawChats);
-  return createSuccessResponse(summaries);
+  return successRes(summaries);
 }
 
 async function getChat(chatId: string): Promise<
@@ -39,15 +36,15 @@ async function getChat(chatId: string): Promise<
   }
 
   const parsedChat = parseRawChat(validationResult.data);
-  return createSuccessResponse(parsedChat);
+  return successRes(parsedChat);
 }
 
 async function createChat(data: ChatData): Promise<Res<string>> {
   try {
     const chatId = await db.insertChat(data);
-    return createSuccessResponse(chatId);
+    return successRes(chatId);
   } catch (error) {
-    return createErrorResponse("Failed to create chat");
+    return errorRes("Failed to create chat");
   }
 }
 
@@ -61,9 +58,9 @@ async function deleteChat(chatId: string): Promise<Res<void>> {
 
   try {
     await db.deleteChat(chatId);
-    return createSuccessResponse(undefined);
+    return successRes(undefined);
   } catch (error) {
-    return createErrorResponse("Failed to delete chat");
+    return errorRes("Failed to delete chat");
   }
 }
 
@@ -83,9 +80,9 @@ async function addMessage(
 
   try {
     await db.updateChat(chatId, updatedChatData);
-    return createSuccessResponse(updatedChatData.messages);
+    return successRes(updatedChatData.messages);
   } catch (error) {
-    return createErrorResponse("Failed to add message to chat");
+    return errorRes("Failed to add message to chat");
   }
 }
 

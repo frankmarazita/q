@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { Config } from "./types";
 import type { Res } from "../common/types";
-import { createSuccessResponse, createErrorResponse } from "../common/response";
+import { successRes, errorRes } from "../common/response";
 
 const copilotTokenSchema = z.object({
   token: z.string(),
@@ -18,6 +18,6 @@ const configSchema = z.object({
 export function validateConfig(data: unknown): Res<Config> {
   const result = configSchema.safeParse(data);
   return result.success
-    ? createSuccessResponse(result.data as Config)
-    : createErrorResponse(result.error.format().toString());
+    ? successRes(result.data as Config)
+    : errorRes(result.error.format().toString());
 }

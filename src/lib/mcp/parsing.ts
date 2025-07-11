@@ -1,7 +1,7 @@
 import { parse } from "comment-json";
 import type { MCPConfig } from "./types";
 import type { Res } from "../common/types";
-import { createErrorResponse } from "../common/response";
+import { errorRes } from "../common/response";
 import { validateMCPConfig } from "./validation";
 
 export function parseMCPConfigText(text: string): Res<MCPConfig> {
@@ -9,7 +9,7 @@ export function parseMCPConfigText(text: string): Res<MCPConfig> {
     const parsed = parse(text, null, true);
     return validateMCPConfig(parsed);
   } catch (error) {
-    return createErrorResponse(
+    return errorRes(
       error instanceof Error
         ? error.message
         : "Failed to parse MCP configuration"
